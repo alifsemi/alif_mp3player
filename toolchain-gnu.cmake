@@ -13,19 +13,11 @@ SET(CMAKE_LINKER                    arm-none-eabi-ld)
 set(CMAKE_CROSSCOMPILING            true)
 set(CMAKE_SYSTEM_NAME               Generic)
 
-if ("${ENSEMBLE_CORE}" STREQUAL "M55_HE" OR "${ENSEMBLE_CORE}" STREQUAL "M55_HP")
-    set(CMAKE_SYSTEM_PROCESSOR          "cortex-m55")
-    set(CMAKE_C_FLAGS                   "-mcpu=cortex-m55")
-    set(CMAKE_CXX_FLAGS                 "-mcpu=cortex-m55")
-    set(CMAKE_ASM_CPU_FLAG              cortex-m55)
-    set(CPU_COMPILE_DEF                 CPU_CORTEX_M55)
-endif()
-if ("${ENSEMBLE_CORE}" STREQUAL "A32")
-    set(CMAKE_SYSTEM_PROCESSOR          "cortex-a32")
-    set(CMAKE_C_FLAGS                   "-mcpu=cortex-a32+crypto")
-    set(CMAKE_CXX_FLAGS                 "-mcpu=cortex-a32+crypto")
-    set(CMAKE_ASM_FLAGS                 "-mcpu=cortex-a32+crypto")
-endif()
+set(CMAKE_SYSTEM_PROCESSOR          "cortex-m55")
+set(CMAKE_C_FLAGS                   "-mcpu=cortex-m55")
+set(CMAKE_CXX_FLAGS                 "-mcpu=cortex-m55")
+set(CMAKE_ASM_CPU_FLAG              cortex-m55)
+set(CPU_COMPILE_DEF                 CPU_CORTEX_M55)
 
 set(CPU_NAME                        ${CMAKE_SYSTEM_PROCESSOR})
 
@@ -34,14 +26,6 @@ set(BINARY_EXTENSION                ".elf")
 
 find_program(CMAKE_C_COMPILER       arm-none-eabi-gcc)
 find_program(CMAKE_CXX_COMPILER     arm-none-eabi-g++)
-
-if (DEFINED XIP)
-    set(MEM_LAYOUT                 "MRAM")
-    set (XIP ${XIP}) # To avoid CMake warning about unused XIP variable
-else()
-    # Default is TCM
-    set(MEM_LAYOUT                 "TCM")
-endif()
 
 set(CMAKE_C_FLAGS_DEBUG            "-O0 -g"          CACHE STRING "Flags used by the C compiler during DEBUG builds.")
 set(CMAKE_C_FLAGS_MINSIZEREL       "-Os -g -DNDEBUG" CACHE STRING "Flags used by the C compiler during MINSIZEREL builds.")
@@ -53,6 +37,7 @@ set(CMAKE_CXX_FLAGS_RELEASE        "-O2 -g -DNDEBUG" CACHE STRING "Flags used by
 
 add_compile_options(
     -mfloat-abi=hard
+    -mcpu=cortex-m55
     -Wall
     -Wno-unused-function
     -Wextra
@@ -92,7 +77,7 @@ macro(add_elf_to_bin_phase target)
 endmacro()
 
 macro(add_linker_file_to_target target define)
-    set(linker_file ${CMAKE_CURRENT_SOURCE_DIR}/linker_files/gcc_${ENSEMBLE_CORE}_${MEM_LAYOUT}.ld)
+    set(linker_file ${CMAKE_CURRENT_SOURCE_DIR}/linker_files/gcc_${ENSEMBLE_CORE}.ld)
 
     message(STATUS "Using ld file: ${linker_file} for target ${target}")
 

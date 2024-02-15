@@ -72,8 +72,20 @@ target_link_libraries(rte_interface INTERFACE
 )
 
 include(${LIBRARIES_DIR}/cmsis.cmake)
+
+set(CMSIS_SRC_PATH ${LIBRARIES_DIR}/CMSIS)
+set(CMSIS_DSP_SRC_PATH ${LIBRARIES_DIR}/CMSIS-dsp)
+include(${LIBRARIES_DIR}/cmsis-dsp.cmake)
 include(${LIBRARIES_DIR}/cmsis-alif-dfp.cmake)
 include(${LIBRARIES_DIR}/common_app_utils.cmake)
+
+# Include CMSIS-arm2d
+set(ARM_2D_SRC_PATH ${LIBRARIES_DIR}/CMSIS-arm2d)
+include(${LIBRARIES_DIR}/cmsis-arm2d.cmake)
+
+# Include LVGL
+set(LVGL_SRC_PATH ${LIBRARIES_DIR}/lvgl)
+include(${LIBRARIES_DIR}/lvgl.cmake)
 
 set(SRC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/source)
 
@@ -92,6 +104,36 @@ add_elf_to_bin_phase(${PROJECT_NAME})
 # Add sources
 target_sources(${PROJECT_NAME} PRIVATE
     ${SRC_PATH}/main.c
+    ${SRC_PATH}/lvgl/lv_port_disp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/lv_demo_music_main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/lv_demo_music.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/lv_demo_music_list.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_cover_1.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_cover_2.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_cover_3.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_icon_1.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_icon_2.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_icon_3.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_icon_4.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_wave_top.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_wave_bottom.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_corner_left.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_corner_right.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_btn_rnd.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_btn_loop.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_btn_next.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_btn_prev.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_btn_play.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_btn_pause.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_btn_list_pause.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_btn_list_play.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_slider_knob.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_logo.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_list_border.c
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${SRC_PATH}/lvgl
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -99,8 +141,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     boardlib
     ensemblecmsis_interface
     common_app_utils
+    ${LVGL_TARGET}
+    ${CMSIS_DSP_TARGET}
 )
-
-set_warnings_as_errors(${PROJECT_NAME})
 
 add_linker_file_to_target(${PROJECT_NAME} ${ENSEMBLE_CORE})

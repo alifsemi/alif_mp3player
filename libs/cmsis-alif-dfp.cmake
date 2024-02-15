@@ -17,6 +17,8 @@ target_include_directories(ensemblecmsis_interface INTERFACE
     ${ALIF_DEVICE_DIR}/core/${ENSEMBLE_CORE}/include
     ${ALIF_DEVICE_DIR}/core/${ENSEMBLE_CORE}/config
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/include
+    ${CMSIS_DIR}/se_services/port/include
+    ${CMSIS_DIR}/se_services/include
 )
 
 target_link_libraries(ensemblecmsis_interface INTERFACE
@@ -35,7 +37,25 @@ target_sources(ensemblecmsis PRIVATE
     ${ALIF_DRIVER_DIR}/Source/Driver_USART.c
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/uart.c
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/pinconf.c
+    ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/dsi.c
+    ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/csi.c
+    ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/cdc.c
+    ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/i2c.c
+    ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/mhu_driver.c
+    ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/mhu_receiver.c
+    ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/mhu_sender.c
     ${ALIF_DRIVER_DIR}/Source/Driver_GPIO.c
+    ${ALIF_DRIVER_DIR}/Source/Driver_CDC200.c
+    ${ALIF_DRIVER_DIR}/Source/Driver_MIPI_DSI.c
+    ${ALIF_DRIVER_DIR}/Source/DPHY_init.c
+    ${ALIF_DRIVER_DIR}/Source/Driver_I2C.c
+    ${ALIF_COMPONENTS_DIR}/Source/GT911_touch_driver.c
+    ${ALIF_COMPONENTS_DIR}/Source/ILI9806E_LCD_panel.c
+    ${CMSIS_DIR}/se_services/source/services_host_clocks.c
+    ${CMSIS_DIR}/se_services/source/services_host_handler.c
+    ${CMSIS_DIR}/se_services/source/services_host_power.c
+    ${CMSIS_DIR}/se_services/source/services_host_maintenance.c
+    ${CMSIS_DIR}/se_services/port/se_services_port.c
 )
 
 target_include_directories(ensemblecmsis PRIVATE

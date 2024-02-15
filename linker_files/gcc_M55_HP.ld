@@ -31,8 +31,8 @@
 * M55-HP application specific settings. These need to changed based on
 * application and system memory requirements
 */
-__STACK_SIZE = 0x00001000;
-__HEAP_SIZE  = 0x00004000;
+__STACK_SIZE = 0x00004000;
+__HEAP_SIZE  = 0x00008000;
 
 /*
 * This linker script is for application to be executed by the
@@ -43,11 +43,11 @@ __HEAP_SIZE  = 0x00004000;
 MEMORY
 {
   ITCM1 (rwx) : ORIGIN = 0x00000000, LENGTH = 0x00040000
-  DTCM1 (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00100000  /* 512 KB for HP core */
-  SRAM0 (rwx) : ORIGIN = 0x02040000, LENGTH = 0x00040000  /* 256kB */
-  SRAM1 (rwx) : ORIGIN = 0x08040000, LENGTH = 0x00040000  /* 256kB */
-  MRAM  (rx)  : ORIGIN = 0x80000000, LENGTH = 0x00100000  /* 1MB */
-  DISP  (rw)  : ORIGIN = 0x08100000, LENGTH = 0x00180000  /* 1,5 MB*/
+  DTCM1 (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00100000
+  SRAM0 (rwx) : ORIGIN = 0x02000000, LENGTH = 0x00280000
+  SRAM1 (rwx) : ORIGIN = 0x08000000, LENGTH = 0x00280000
+  MRAM  (rx)  : ORIGIN = 0x80000000, LENGTH = 0x00580000
+  DISP  (rw)  : ORIGIN = 0x02280000, LENGTH = 0x00180000
 }
 
 
@@ -55,10 +55,9 @@ ENTRY(Reset_Handler)
 
 SECTIONS
 {
-  .text.at_itcm1 : ALIGN(8)
+  .text.at_mram : ALIGN(16)
   {
     KEEP(*(.vectors))
-    *(.text*)
 
     KEEP(*(.init))
     KEEP(*(.fini))
@@ -81,57 +80,56 @@ SECTIONS
     *(startup_ro_data)
 
     KEEP(*(.eh_frame*))
-  } > ITCM1
+    . = ALIGN(16);
+  } > MRAM
 
-  .ARM.extab : ALIGN(4)
+   .text.at_itcm1 : ALIGN(8)
+  {
+    *(fast_code)
+  } > ITCM1 AT> MRAM
+
+  .text.at_mram : ALIGN(16)
+  {
+    *(.text*)
+    . = ALIGN(16);
+  } > MRAM
+
+  .ARM.extab : ALIGN(16)
   {
     *(.ARM.extab* .gnu.linkonce.armextab.*)
-  } > ITCM1
+    . = ALIGN(16);
+  } > MRAM
 
-  .ARM.exidx : ALIGN(4)
+  .ARM.exidx : ALIGN(16)
   {
   __exidx_start = .;
     *(.ARM.exidx* .gnu.linkonce.armexidx.*)
   __exidx_end = .;
-  } > ITCM1
+  . = ALIGN(16);
+  } > MRAM
 
-  .copy.table : ALIGN(4)
+  .copy.table : ALIGN(16)
   {
     __copy_table_start__ = .;
     LONG (LOADADDR(.data.at_dtcm1))
     LONG (ADDR(.data.at_dtcm1))
     LONG (SIZEOF(.data.at_dtcm1)/4)
-    /* Add each additional data section here */
-/*
-    LONG (LOADADDR(.data.at_itcm))
-    LONG (ADDR(.data.at_itcm))
-    LONG (SIZEOF(.data.at_itcm)/4)
-
-    LONG (LOADADDR(.data.at_sram0))
-    LONG (ADDR(.data.at_sram0))
-    LONG (SIZEOF(.data.at_sram0)/4)
-
-    LONG (LOADADDR(.data.at_sram1))
-    LONG (ADDR(.data.at_sram1))
-    LONG (SIZEOF(.data.at_sram1)/4)
-*/
+    LONG (LOADADDR(.text.at_itcm1))
+    LONG (ADDR(.text.at_itcm1))
+    LONG (SIZEOF(.text.at_itcm1)/4)
     __copy_table_end__ = .;
-  } > ITCM1
+    . = ALIGN(16);
+  } > MRAM
 
-  .zero.table : ALIGN(4)
+  .zero.table : ALIGN(16)
   {
     __zero_table_start__ = .;
     /* Add each additional bss section here */
     LONG (ADDR(.bss.at_dtcm1))
     LONG (SIZEOF(.bss.at_dtcm1)/4)
-    LONG (ADDR(.bss.at_itcm1))
-    LONG (SIZEOF(.bss.at_itcm1)/4)
-    LONG (ADDR(.bss.at_sram0))
-    LONG (SIZEOF(.bss.at_sram0)/4)
-    LONG (ADDR(.bss.at_sram1))
-    LONG (SIZEOF(.bss.at_sram1)/4)
     __zero_table_end__ = .;
-  } > ITCM1
+    . = ALIGN(16);
+  } > MRAM
 
   __etext = .;
 
@@ -165,7 +163,7 @@ SECTIONS
     KEEP(*(.jcr*))
 
     __data_end__ = .;
-  } > DTCM1 AT> ITCM1
+  } > DTCM1 AT> MRAM
 
   .tdata.at.dtcm1 : ALIGN(16)
   {
@@ -174,7 +172,7 @@ SECTIONS
     __arm32_tls_tcb_offset = .;
     *(.tdata*)
     . = ALIGN(16);
-  } > DTCM1 AT> ITCM1
+  } > DTCM1 AT> MRAM
 
   /*
    * Secondary data section, optional
@@ -205,45 +203,7 @@ SECTIONS
     LONG (0)
     LONG (0)
     LONG (0)
-  } > ITCM1
-
-   /*
-   Secondary bss sections, optional
-
-   Each additional bss section must be in
-   the .zero.table above to asure proper
-   initialization during startup.
-
-   NOTE! .bss.noinit areas are not initialized with zeroes.
-   They are used to test retention memories in SoC STOP
-   so they must not be zeroed. Other .bss areas are zeroed.
-   */
-  .bss.noinit.at_itcm1 (NOLOAD) : ALIGN(8)
-  {
-    *(.bss.noinit.memblock_itcm1)
-  } > ITCM1
-
-  .bss.at_itcm1 (NOLOAD) : ALIGN(8)
-  {
-  } > ITCM1
-
-   .bss.noinit.at_sram0 (NOLOAD) : ALIGN(8)
-  {
-    *(.bss.noinit.memblock_sram0)
-  } > SRAM0
-
-  .bss.at_sram0 (NOLOAD) : ALIGN(8)
-  {
-  } > SRAM0
-
-  .bss.noinit.at_sram1 (NOLOAD) : ALIGN(8)
-  {
-    *(.bss.noinit.memblock_sram1)
-  } > SRAM1
-
-  .bss.at_sram1 (NOLOAD) : ALIGN(8)
-  {
-  } > SRAM1
+  } > MRAM
 
   .bss.at_disp (NOLOAD) : ALIGN(8)
   {

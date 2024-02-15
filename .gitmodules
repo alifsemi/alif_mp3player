@@ -16,3 +16,6 @@
 [submodule "libs/CMSIS-arm2d"]
 	path = libs/CMSIS-arm2d
 	url = git@github.com:ARM-software/Arm-2D.git
+[submodule "libs/CMSIS-dsp"]
+	path = libs/CMSIS-dsp
+	url = git@github.com:ARM-software/CMSIS-DSP.git

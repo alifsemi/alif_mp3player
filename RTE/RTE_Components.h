@@ -50,6 +50,7 @@
 #define RTE_Drivers_CDC200   1 /* Display driver */
 #define RTE_Drivers_MIPI_DSI 1
 #define RTE_Drivers_MIPI_DSI_ILI9806E_PANEL 1
+#define RTE_Drivers_GT911 1
 
 #define RTE_Drivers_CPI  1
 #define RTE_Drivers_MIPI_CSI2 1
