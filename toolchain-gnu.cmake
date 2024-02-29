@@ -41,6 +41,7 @@ add_compile_options(
     -Wall
     -Wno-unused-function
     -Wextra
+    -Werror-implicit-function-declaration
     -Wvla
     -Wno-error=cpp
     -c
@@ -129,5 +130,6 @@ add_link_options(
     -mlittle-endian
     -specs=nosys.specs
     -Wl,--print-memory-usage
+    -Wl,--gc-sections
     --entry=Reset_Handler
 )

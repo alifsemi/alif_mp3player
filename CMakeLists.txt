@@ -104,6 +104,8 @@ add_elf_to_bin_phase(${PROJECT_NAME})
 # Add sources
 target_sources(${PROJECT_NAME} PRIVATE
     ${SRC_PATH}/main.c
+
+    # graphics
     ${SRC_PATH}/lvgl/lv_port_disp.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/lv_demo_music_main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/lv_demo_music.c
@@ -130,10 +132,15 @@ target_sources(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_slider_knob.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_logo.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_list_border.c
+
+    # audio
+    ${SRC_PATH}/audio/audio.c
+    ${SRC_PATH}/audio/wm8904_driver.c
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${SRC_PATH}/lvgl
+    ${SRC_PATH}/audio
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

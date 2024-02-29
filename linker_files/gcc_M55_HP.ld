@@ -117,6 +117,9 @@ SECTIONS
     LONG (LOADADDR(.text.at_itcm1))
     LONG (ADDR(.text.at_itcm1))
     LONG (SIZEOF(.text.at_itcm1)/4)
+    LONG (LOADADDR(.data.at_sram0))
+    LONG (ADDR(.data.at_sram0))
+    LONG (SIZEOF(.data.at_sram0) / 4)
     __copy_table_end__ = .;
     . = ALIGN(16);
   } > MRAM
@@ -133,7 +136,14 @@ SECTIONS
 
   __etext = .;
 
-  .data.at_dtcm1 : ALIGN(8)
+   .data.at_sram0 : ALIGN(16)
+  {
+    *(.data.yes_no_go_stop_raw)
+    *(.data.go_stop_stereo_raw)
+    . = ALIGN(16);
+  } > SRAM0 AT> MRAM
+
+  .data.at_dtcm1 : ALIGN(16)
   {
     __data_start__ = .;
     *(vtable)
@@ -163,6 +173,7 @@ SECTIONS
     KEEP(*(.jcr*))
 
     __data_end__ = .;
+    . = ALIGN(16);
   } > DTCM1 AT> MRAM
 
   .tdata.at.dtcm1 : ALIGN(16)
@@ -182,14 +193,7 @@ SECTIONS
    * initialization during startup.
    */
 
-  /* Place non-zero code/data here if required in SRAM0 */
-/*
-  .data.at_sram0 : ALIGN(8)
-  {
-  } > SRAM0 AT> ITCM
-*/
-
-  /* Place non-zero code/data here if required in SRAM1 */
+   /* Place non-zero code/data here if required in SRAM1 */
 /*
   .data.at_sram1 : ALIGN(8)
   {
