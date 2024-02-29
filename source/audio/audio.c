@@ -33,8 +33,9 @@
 
 #include "Driver_SAI.h"
 #include "audio.h"
-#include "audio_sample.h"
+#include "mp3_sample.h"
 #include "wm8904_driver.h"
+#include "minimp3.h"
 
 /* 1 to send the data stream continously, 0 to send data only once */
 #define REPEAT_TX 1
@@ -49,7 +50,7 @@
 /* Callback events */
 #define DAC_SEND_COMPLETE_EVENT    (1U << 0)
 
-static uint32_t wlen = 24;
+static uint32_t wlen = 16;
 static uint32_t sampling_rate = 48000;
 
 /* I2S_DAC Driver */
@@ -57,9 +58,10 @@ extern ARM_DRIVER_SAI ARM_Driver_SAI_(I2S_DAC);
 /* Driver Instance */
 static ARM_DRIVER_SAI *i2s_dac = &ARM_Driver_SAI_(I2S_DAC);
 
-static const uint32_t sample_len = 572520 / 3;
-static uint32_t sample[572520 / 3];
+//static const uint32_t sample_len = 572520 / 3;
+static mp3d_sample_t sample[286260];
 
+static mp3dec_t mp3d;
 
 static atomic_bool sending = false;
 
@@ -130,10 +132,7 @@ int32_t audio_init(void)
 
     status = WM8904_Codec_Init();
 
-    for(uint32_t i = 0; i < sample_len; i++)
-    {
-        sample[i] = ((uint32_t)(go_stop_stereo_raw[i*3])) + ((uint32_t)(go_stop_stereo_raw[i*3+1]) << 8) + (go_stop_stereo_raw[i*3+2] << 16);
-    }
+    mp3dec_init(&mp3d);
 
     return status;
 }
@@ -145,8 +144,17 @@ int32_t audio_start_transmit(void)
 
     sending = true;
 
+    mp3dec_frame_info_t info;
+    uint32_t i = 0;
+    int samples = 0;
+
+    do {
+        samples += 2 * mp3dec_decode_frame(&mp3d, go_stop_stereo_mp3 + i, go_stop_stereo_mp3_len - i, sample + samples, &info);
+        i += info.frame_bytes;
+    } while(i < go_stop_stereo_mp3_len);
+
     /* Transmit the samples */
-    int32_t status = i2s_dac->Send(sample, sample_len);
+    int32_t status = i2s_dac->Send(sample, samples);
     if(status)
     {
         printf("DAC Send status = %ld\n", status);

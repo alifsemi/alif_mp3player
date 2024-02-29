@@ -31,7 +31,7 @@
 * M55-HP application specific settings. These need to changed based on
 * application and system memory requirements
 */
-__STACK_SIZE = 0x00004000;
+__STACK_SIZE = 0x00008000;
 __HEAP_SIZE  = 0x00008000;
 
 /*

@@ -87,6 +87,8 @@ include(${LIBRARIES_DIR}/cmsis-arm2d.cmake)
 set(LVGL_SRC_PATH ${LIBRARIES_DIR}/lvgl)
 include(${LIBRARIES_DIR}/lvgl.cmake)
 
+include(${LIBRARIES_DIR}/minimp3.cmake)
+
 set(SRC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/source)
 
 add_executable(${PROJECT_NAME})
@@ -136,6 +138,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     # audio
     ${SRC_PATH}/audio/audio.c
     ${SRC_PATH}/audio/wm8904_driver.c
+    ${SRC_PATH}/audio/minimp3.c
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -150,6 +153,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     common_app_utils
     ${LVGL_TARGET}
     ${CMSIS_DSP_TARGET}
+    minimp3
 )
 
 add_linker_file_to_target(${PROJECT_NAME} ${ENSEMBLE_CORE})
