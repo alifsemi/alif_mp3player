@@ -36,7 +36,7 @@ endif()
 set(LVGL_TARGET       lvgl)
 
 # Include the subdirectory - we can use LVGL's own CMake set-up
-add_subdirectory(${LVGL_SRC_PATH} ${CMAKE_BINARY_DIR}/lvgl)
+add_subdirectory(${LVGL_SRC_PATH} ${CMAKE_BINARY_DIR}/lvgl EXCLUDE_FROM_ALL)
 
 target_link_libraries(${LVGL_TARGET} PRIVATE ${ARM_2D_TARGET})
 target_include_directories(${LVGL_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/configs/lvgl)

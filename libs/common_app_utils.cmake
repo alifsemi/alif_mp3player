@@ -5,6 +5,7 @@ add_library(common_app_utils)
 target_include_directories(boardlib INTERFACE
     ${COMMONAPPUTILS_DIR}/logging
     ${COMMONAPPUTILS_DIR}/fault_handler
+    ${COMMONAPPUTILS_DIR}/profiling
 )
 
 target_sources(common_app_utils PRIVATE

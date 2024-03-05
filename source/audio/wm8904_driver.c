@@ -146,7 +146,7 @@ static int32_t WM8904_QSUS(void)
 	DeviceID |= rx_data[1];
 	if(DeviceID == WM8904_DEV_ID)
 	{
-		printf("Device Found, initiating Quick startup\n");
+		printf("WM8904 device Found, initiating Quick startup\n");
 		/*	The Write Sequencer needs SYSCLK to be enabled to function */
         WM8904_WriteData(WM8904_CLOCK_RATES_2, (CLK_RTE2_CLK_SYS_ENA | CLK_RTE2_CLK_DSP_ENA));
 
@@ -170,7 +170,7 @@ static int32_t WM8904_QSUS(void)
 	}
 	else
 	{
-		 printf("Device not Found\n");
+		 printf("WM8904 device not found\n");
          return ARM_DRIVER_ERROR_UNSUPPORTED;
 	}
 }

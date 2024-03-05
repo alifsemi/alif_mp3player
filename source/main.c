@@ -2,11 +2,13 @@
 #include "fault_handler.h"
 #include "lv_port_disp.h"
 #include "lvgl.h"
-#include "demos/widgets/lv_demo_widgets.h"
+#include "lv_demo_music.h"
+#include "lv_demo_music_main.h"
 #include "uart_tracelib.h"
 #include "RTE_Components.h"
 #include "audio.h"
 #include CMSIS_device_header
+#include "mpu.h"
 
 #include <stdio.h>
 
@@ -16,11 +18,21 @@ void flush_uart();
 
 #define TICKS_PER_SECOND    1000
 
+void audio_ended(uint32_t error)
+{
+    (void)error;
+    // at the moment, just make sure GUI doesn't show audio progressing anymore
+    _lv_demo_music_playback_stopped();
+}
+
+
 int main(int argc, char* argv[])
 {
     (void)argc;
     (void)argv;
+    mpu_init(); // pull mpu in
     clk_init(); // pull retarget in
+    enable_cgu_clk100m();
     sys_busy_loop_init();
     BOARD_Pinmux_Init(); // initialize board
     tracelib_init(0, 0); // initialize tracelib
@@ -35,7 +47,7 @@ int main(int argc, char* argv[])
         while(1);
     }
 
-    int32_t audio_ret = audio_init();
+    int32_t audio_ret = audio_init(audio_ended);
     if(audio_ret)
     {
         printf("audio_init: %" PRId32 "\n", audio_ret);
@@ -45,11 +57,11 @@ int main(int argc, char* argv[])
     printf("Initialized.\n");
 
     lv_demo_music();
-    audio_start_transmit();
 
     while (1)
     {
-        lv_task_handler();
+        audio_process_nexts(10);
+        lv_timer_handler_run_in_period(20);
         flush_uart();
     }
 

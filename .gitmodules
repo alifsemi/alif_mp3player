@@ -21,4 +21,4 @@
 	url = git@github.com:ARM-software/CMSIS-DSP.git
 [submodule "libs/minimp3"]
 	path = libs/minimp3
-	url = git@github.com:lieff/minimp3.git
+	url = git@github.com:alifsemi/minimp3_DEV.git

@@ -44,10 +44,9 @@ MEMORY
 {
   ITCM1 (rwx) : ORIGIN = 0x00000000, LENGTH = 0x00040000
   DTCM1 (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00100000
-  SRAM0 (rwx) : ORIGIN = 0x02000000, LENGTH = 0x00280000
-  SRAM1 (rwx) : ORIGIN = 0x08000000, LENGTH = 0x00280000
+  SRAM0 (rwx) : ORIGIN = 0x02000000, LENGTH = 0x00400000
   MRAM  (rx)  : ORIGIN = 0x80000000, LENGTH = 0x00580000
-  DISP  (rw)  : ORIGIN = 0x02280000, LENGTH = 0x00180000
+  DISP  (rw)  : ORIGIN = 0x08100000, LENGTH = 0x00180000
 }
 
 
@@ -83,9 +82,11 @@ SECTIONS
     . = ALIGN(16);
   } > MRAM
 
-   .text.at_itcm1 : ALIGN(8)
+   .text.at_itcm1 : ALIGN(16)
   {
     *(fast_code)
+    *minimp3.c.obj(.text*)
+    . = ALIGN(16);
   } > ITCM1 AT> MRAM
 
   .text.at_mram : ALIGN(16)
@@ -119,7 +120,7 @@ SECTIONS
     LONG (SIZEOF(.text.at_itcm1)/4)
     LONG (LOADADDR(.data.at_sram0))
     LONG (ADDR(.data.at_sram0))
-    LONG (SIZEOF(.data.at_sram0) / 4)
+    LONG (SIZEOF(.data.at_sram0)/4)
     __copy_table_end__ = .;
     . = ALIGN(16);
   } > MRAM

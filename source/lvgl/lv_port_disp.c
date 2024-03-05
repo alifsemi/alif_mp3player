@@ -378,24 +378,8 @@ static void lv_disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_c
     int ret = 0 ;
     int lp_count = 0;
 
-    while(dsi_err == 0 && line_irq_status == 0)
-    {
-        if(lp_count++ < 1000000)
-        {
-            sys_busy_loop_us(1);
-        }
-        else
-        {
-            printf("Error: Scan line event did not occurred.\r\n");
-            return;
-        }
-    }
-
-    if(dsi_err == 1)
-    {
-        printf("Error: DSI error occurred.\r\n");
+    if(line_irq_status == 0)
         return;
-    }
 
     line_irq_status = 0;
 

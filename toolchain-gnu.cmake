@@ -49,6 +49,7 @@ add_compile_options(
     -ffunction-sections
     -fshort-enums
     -funsigned-char
+    -ffast-math
     $<$<COMPILE_LANGUAGE:C>:-std=c99>
     $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
     -MD
