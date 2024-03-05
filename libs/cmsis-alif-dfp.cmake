@@ -14,6 +14,7 @@ target_include_directories(ensemblecmsis_interface INTERFACE
     ${ALIF_COMPONENTS_DIR}/Source
     ${ALIF_PACK_DIR}/drivers/include
     ${ALIF_DEVICE_DIR}/common/include
+    ${ALIF_DEVICE_DIR}/common/config
     ${ALIF_DEVICE_DIR}/core/${ENSEMBLE_CORE}/include
     ${ALIF_DEVICE_DIR}/core/${ENSEMBLE_CORE}/config
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/include
@@ -34,6 +35,7 @@ target_sources(ensemblecmsis PRIVATE
     ${ALIF_DEVICE_DIR}/common/source/tgu_M55.c
     ${ALIF_DEVICE_DIR}/common/source/pm.c
     ${ALIF_DEVICE_DIR}/common/source/system_utils.c
+    ${ALIF_DEVICE_DIR}/common/source/clk.c
     ${ALIF_DRIVER_DIR}/Source/Driver_USART.c
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/uart.c
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/pinconf.c
