@@ -24,7 +24,8 @@ int32_t audio_start_transmit(void);
 bool audio_process_next(void);
 
 // Process n frames of MP3 or until playback buffer is full
-void audio_process_nexts(int n);
+// returns true if full playback buffer is now decoded
+bool audio_process_nexts(int n);
 
 // Pause the playback
 void audio_pause(void);

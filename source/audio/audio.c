@@ -259,14 +259,20 @@ bool audio_process_next(void)
     return true;
 }
 
-void audio_process_nexts(int n)
+bool audio_process_nexts(int n)
 {
     if(sending)
     {
-        for(int i = 0; i < n; i++)
-            if(decode_next())
-                break;
+        bool ready = false;
+        for(int i = 0; i < n; i++) {
+            ready = decode_next();
+            if(ready) {
+                return true;
+            }
+        }
+        return ready;
     }
+    return true;
 }
 
 void audio_pause(void)

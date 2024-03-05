@@ -7,8 +7,9 @@
 #include "uart_tracelib.h"
 #include "RTE_Components.h"
 #include "audio.h"
-#include CMSIS_device_header
 #include "mpu.h"
+
+#include CMSIS_device_header
 
 #include <stdio.h>
 
@@ -60,9 +61,12 @@ int main(int argc, char* argv[])
 
     while (1)
     {
-        audio_process_nexts(10);
+        bool ready = audio_process_nexts(10);
         lv_timer_handler_run_in_period(20);
         flush_uart();
+        if(ready) {
+            __WFE();
+        }
     }
 
     return 0;
