@@ -116,8 +116,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/lv_demo_music_list.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_cover_1_large.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_cover_2_large.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_icon_1_large.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_icon_2_large.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_wave_top_large.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_wave_bottom_large.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_corner_left_large.c

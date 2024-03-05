@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
     (void)argv;
     mpu_init(); // pull mpu in
     clk_init(); // pull retarget in
-    enable_cgu_clk100m();
     sys_busy_loop_init();
     BOARD_Pinmux_Init(); // initialize board
     tracelib_init(0, 0); // initialize tracelib

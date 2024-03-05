@@ -12,7 +12,7 @@
 
 #include "lv_demo_music_main.h"
 #include "lv_demo_music_list.h"
-
+#include "../../src/core/lv_global.h"
 
 /**********************
  *  STATIC VARIABLES
@@ -31,16 +31,18 @@ static const char * artist_list[] = {
 };
 
 static const char * genre_list[] = {
-    "Groove metal - 1994",
+    "Groove Metal - 1994",
     "Drum'n bass - 2016",
 };
 
 static const uint32_t time_list[] = {
-    2 * 60,
-    2 * 60,
+    1 * 60 + 59,
+    1 * 60 + 59,
 };
 
-static lv_color_t original_screen_bg_color;
+#if LV_USE_PERF_MONITOR || LV_DEMO_MUSIC_AUTO_PLAY
+    #define sysmon_perf LV_GLOBAL_DEFAULT()->sysmon_perf
+#endif
 
 /**********************
  *      MACROS
@@ -52,24 +54,10 @@ static lv_color_t original_screen_bg_color;
 
 void lv_demo_music(void)
 {
-    original_screen_bg_color = lv_obj_get_style_bg_color(lv_scr_act(), 0);
-    lv_obj_set_style_bg_color(lv_scr_act(), lv_color_hex(0x343247), 0);
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x343247), 0);
 
-    list = _lv_demo_music_list_create(lv_scr_act());
-    ctrl = _lv_demo_music_main_create(lv_scr_act());
-}
-
-void lv_demo_music_close(void)
-{
-    /*Delete all aniamtions*/
-    lv_anim_del(NULL, NULL);
-
-    _lv_demo_music_list_close();
-    _lv_demo_music_main_close();
-
-    lv_obj_clean(lv_scr_act());
-
-    lv_obj_set_style_bg_color(lv_scr_act(), original_screen_bg_color, 0);
+    list = _lv_demo_music_list_create(lv_screen_active());
+    ctrl = _lv_demo_music_main_create(lv_screen_active());
 }
 
 const char * _lv_demo_music_get_title(uint32_t track_id)

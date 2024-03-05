@@ -41,6 +41,7 @@
 /* SE Services */
 #include "se_services_port.h"
 #include "lv_port_disp.h"
+#include "lv_port.h"
 
 #define I2C_TOUCH_ENABLE         1
 
@@ -291,9 +292,9 @@ int hardware_cfg(void)
                 data: data to LVGL driver
   \return       none
   */
-static void lv_touch_get(lv_indev_drv_t * drv, lv_indev_data_t * data)
+static void lv_touch_get(lv_indev_t * indev, lv_indev_data_t * data)
 {
-    (void)drv;
+    (void)indev;
     ARM_TOUCH_STATE status;
     Drv_Touchscreen->GetState(&status);
 
@@ -372,11 +373,10 @@ error_GT911_uninitialize:
   \param[in]   color_p  buffer containing the data to be flushed to display.
   \return      none
   */
-static void lv_disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
+static void lv_disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map)
 {
     (void)area;
     int ret = 0 ;
-    int lp_count = 0;
 
     if(line_irq_status == 0)
         return;
@@ -384,7 +384,7 @@ static void lv_disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_c
     line_irq_status = 0;
 
     /* Configure CDC200 controller */
-    ret = CDCdrv->Control(CDC200_FRAMEBUF_UPDATE, (uint32_t) color_p);
+    ret = CDCdrv->Control(CDC200_FRAMEBUF_UPDATE, (uint32_t) px_map);
     if(ret != ARM_DRIVER_OK)
     {
         /* Error in CDC200 control configuration */
@@ -392,7 +392,7 @@ static void lv_disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_c
     }
 
     /* Indicating flushing is done to display */
-    lv_disp_flush_ready(disp_drv);
+    lv_disp_flush_ready(disp);
 }
 
 /**
@@ -406,37 +406,13 @@ static void lv_disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_c
   */
 uint32_t lv_port_disp_init(void)
 {
-    /* Descriptor of a display driver */
-    static lv_disp_drv_t disp_drv;
-    static lv_disp_draw_buf_t disp_buf;
-
     /* Initialize LVGL */
     lv_init();
+    lv_tick_set_cb(clock);
 
-    /*Initialize the display buffer.*/
-    lv_disp_draw_buf_init(&disp_buf, lcd_image, lcd_image2, DIMAGE_Y*DIMAGE_X);
-
-    /* Basic initialization */
-    lv_disp_drv_init(&disp_drv);
-
-    /* Assign the buffer to the display */
-    disp_drv.draw_buf = &disp_buf;
-
-    /* Set the horizontal resolution of the display */
-    disp_drv.hor_res = DIMAGE_X;
-
-    /* Set the vertical resolution of the display */
-    disp_drv.ver_res = DIMAGE_Y;
-
-    disp_drv.direct_mode = 1;
-
-    disp_drv.full_refresh = 1;
-
-    /* Set the driver function */
-    disp_drv.flush_cb = lv_disp_flush;
-
-    /* Finally register the driver */
-    lv_disp_drv_register(&disp_drv);
+    lv_display_t * disp = lv_display_create(DIMAGE_X, DIMAGE_Y);
+    lv_display_set_flush_cb(disp, lv_disp_flush);
+    lv_display_set_buffers(disp, lcd_image, lcd_image2, DIMAGE_Y*DIMAGE_X*PIXEL_BYTES, LV_DISPLAY_RENDER_MODE_FULL);
 
     /* Display hardware initialization */
     uint32_t ret = hw_disp_init();
@@ -444,20 +420,9 @@ uint32_t lv_port_disp_init(void)
         return ret;
 
 #if(I2C_TOUCH_ENABLE == 1)
-    /* Descriptor of a input device driver */
-    static lv_indev_drv_t touch_drv;
-
-    /* Basic initialization */
-    lv_indev_drv_init(&touch_drv);
-
-    /* Touch pad is a pointer-like device */
-    touch_drv.type = LV_INDEV_TYPE_POINTER;
-
-    /* Set the driver function */
-    touch_drv.read_cb = lv_touch_get;
-
-    /*Finally register the driver*/
-    lv_indev_drv_register(&touch_drv);
+    lv_indev_t * indev = lv_indev_create();
+    lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(indev, lv_touch_get);
 
     /* Touch screen hardware initialization */
     ret = hw_touch_init();
