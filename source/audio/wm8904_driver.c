@@ -115,9 +115,9 @@ static int32_t I2C_Init()
     return ret;
 }
 
-static int32_t I2C_Master_ReadData(int addr, uint8_t* data, uint32_t len, bool xfer_pending)
+static int32_t I2C_Master_ReadData(int addr, uint8_t* data, uint32_t len)
 {
-    int32_t ret = I2C_MstDrv->MasterReceive(addr, data, len, xfer_pending);
+    int32_t ret = I2C_MstDrv->MasterReceive(addr, data, len, false);
     if (ret != ARM_DRIVER_OK)
     {
          printf("\r\n Error: I2C Master Receive failed with %" PRId32 "\n", ret);
@@ -140,7 +140,7 @@ static int32_t WM8904_QSUS(void)
 	uint16_t DeviceID = 0x00;
 	/* Read Device ID 8904h */
 	WM8904_WriteData(WM8904_SW_RESET_AND_ID,0x0101);
-	I2C_Master_ReadData (WM8904_SLAVE,rx_data,2, false);
+	I2C_Master_ReadData (WM8904_SLAVE,rx_data,2);
 	DeviceID = rx_data[0];
 	DeviceID <<= 8;
 	DeviceID |= rx_data[1];
@@ -159,7 +159,7 @@ static int32_t WM8904_QSUS(void)
         do {
             sys_busy_loop_us(50000);
             WM8904_Write(0x70);
-            I2C_Master_ReadData(WM8904_SLAVE, rx_data, 2, true);
+            I2C_Master_ReadData(WM8904_SLAVE, rx_data, 2);
         } while(rx_data[1] & 0x1);
 
         /* This un-mutes the DACs, final phase of the Quick Start-up. */
