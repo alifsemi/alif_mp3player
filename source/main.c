@@ -22,8 +22,9 @@ void flush_uart();
 void audio_ended(uint32_t error)
 {
     (void)error;
-    // at the moment, just make sure GUI doesn't show audio progressing anymore
     _lv_demo_music_playback_stopped();
+    _lv_demo_music_album_next(true);
+    audio_load_track();
 }
 
 
@@ -57,6 +58,7 @@ int main(int argc, char* argv[])
     printf("Initialized.\n");
 
     lv_demo_music();
+    audio_load_track();
 
     while (1)
     {

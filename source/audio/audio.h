@@ -16,6 +16,8 @@ typedef void (*audio_end_cb)(uint32_t status);
 // Initialize audio pipeline - I2C, I2S, WM8904 and MP3 decoder
 int32_t audio_init(audio_end_cb audio_cb);
 
+int32_t audio_load_track(void);
+
 // Start playing an MP3 file
 int32_t audio_start_transmit(void);
 

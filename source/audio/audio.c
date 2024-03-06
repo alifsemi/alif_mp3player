@@ -95,10 +95,8 @@ static void DAC_Callback(uint32_t event)
     if (event != ARM_SAI_EVENT_SEND_COMPLETE) {
         printf("DAC_Callback: %" PRIu32 "\n", event);
     }
-    if(event & ARM_SAI_EVENT_SEND_COMPLETE)
-    {
-        if(cancelling)
-        {
+    if(event & ARM_SAI_EVENT_SEND_COMPLETE) {
+        if(cancelling) {
             cancelling = false;
             return;
         }
@@ -112,8 +110,7 @@ static void DAC_Callback(uint32_t event)
 static void start_transmit_report_ending(void)
 {
     int32_t err = start_transmit();
-    if(err != AUDIO_STATUS_SUCCESSFULLY_CONTINUING)
-    {
+    if(err != AUDIO_STATUS_SUCCESSFULLY_CONTINUING) {
         audio_callback(err);
     }
 }
@@ -128,31 +125,29 @@ int32_t audio_init(audio_end_cb audio_cb)
     version = i2s_dac->GetVersion();
     printf("I2S API version = %d\n", version.api);
 
-    if (audio_cb == NULL)
+    if (audio_cb == NULL) {
         return ARM_DRIVER_ERROR_PARAMETER;
+    }
 
     audio_callback = audio_cb;
 
     /* Verify if I2S protocol is supported */
     cap = i2s_dac->GetCapabilities();
-    if(!cap.protocol_i2s)
-    {
+    if(!cap.protocol_i2s) {
         printf("I2S is not supported\n");
         return -1;
     }
 
     /* Initializes I2S0 interface */
     status = i2s_dac->Initialize(DAC_Callback);
-    if(status)
-    {
+    if(status) {
         printf("DAC Init failed status = %ld\n", status);
         return -1;
     }
 
     /* Enable the power for I2S0 */
     status = i2s_dac->PowerControl(ARM_POWER_FULL);
-    if(status)
-    {
+    if(status) {
         printf("DAC Power Failed status = %ld\n", status);
         return -1;
     }
@@ -163,16 +158,14 @@ int32_t audio_init(audio_end_cb audio_cb)
                                 ARM_SAI_ASYNCHRONOUS |
                                 ARM_SAI_PROTOCOL_I2S |
                                 ARM_SAI_DATA_SIZE(wlen), wlen*2, SAMPLE_RATE);
-    if(status)
-    {
+    if(status) {
         printf("DAC Control status = %ld\n", status);
         return -1;
     }
 
     /* enable Transmitter */
     status = i2s_dac->Control(ARM_SAI_CONTROL_TX, 1, 0);
-    if(status)
-    {
+    if(status) {
         printf("DAC TX status = %ld\n", status);
         return -1;
     }
@@ -196,8 +189,7 @@ static int32_t start_transmit(void)
     }
 
     int32_t ret = i2s_dac->Send(pcm, pcm_samples);
-    if(ret != ARM_DRIVER_OK)
-    {
+    if(ret != ARM_DRIVER_OK) {
         // sending failed for some reason, abort.
         sending = false;
         eof = true;
@@ -207,10 +199,12 @@ static int32_t start_transmit(void)
     }
 
     // Swap working buffer and reset counter and work status
-    if(pcm == &pcm1[0])
+    if(pcm == &pcm1[0]) {
         pcm = &pcm2[0];
-    else
+    }
+    else {
         pcm = &pcm1[0];
+    }
     pcm_samples = 0;
     work_ready = false;
     return AUDIO_STATUS_SUCCESSFULLY_CONTINUING;
@@ -235,17 +229,17 @@ static bool decode_next(void)
     return work_ready;
 }
 
-int32_t audio_start_transmit(void)
+int32_t audio_load_track(void)
 {
-    if(sending)
-    {
+    // stop playing if already doing so
+    if(sending && !paused) {
         cancelling = true;
         while(cancelling) {
             __WFE();
         }
     }
+    sending = false;
 
-    sending = true;
     // TODO: these could come from outside the function
     // but now we just expect them to be compiled in the binary somewhere
     extern uint32_t audio_sample_mp3_len;
@@ -262,7 +256,23 @@ int32_t audio_start_transmit(void)
     cancelling = false;
     pcm = &pcm1[0];
 
+    // fill the initial buffer immediately
     while(!decode_next());
+
+    if(info.channels != 2 || info.hz != SAMPLE_RATE) {
+        printf("WARNING: unsupported audio format loaded.\n");
+        return -1;
+    }
+    return 0;
+}
+
+int32_t audio_start_transmit(void)
+{
+    if(sending) {
+        return 0;
+    }
+
+    sending = true;
 
     /* Transmit the samples */
     return start_transmit();
@@ -278,8 +288,7 @@ bool audio_process_next(void)
 
 bool audio_process_nexts(int n)
 {
-    if(sending)
-    {
+    if(sending) {
         bool ready = false;
         for(int i = 0; i < n; i++) {
             ready = decode_next();

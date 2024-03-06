@@ -357,7 +357,6 @@ void _lv_demo_music_resume(void)
     lv_slider_set_range(slider_obj, 0, _lv_demo_music_get_track_length(track_id));
 
     lv_obj_add_state(play_obj, LV_STATE_CHECKED);
-
 }
 
 void _lv_demo_music_pause(void)
@@ -636,6 +635,8 @@ static void track_load(uint32_t id)
     spectrum_i_pause = 0;
     lv_slider_set_value(slider_obj, 0, LV_ANIM_OFF);
     lv_label_set_text(time_obj, "0:00");
+
+    audio_load_track();
 
     if(id == track_id) return;
     bool next = false;
