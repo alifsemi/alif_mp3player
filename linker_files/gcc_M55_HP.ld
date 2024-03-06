@@ -42,9 +42,8 @@ __HEAP_SIZE  = 0x00008000;
 
 MEMORY
 {
-  ITCM1 (rwx) : ORIGIN = 0x00000000, LENGTH = 0x00040000
-  DTCM1 (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00100000
-  SRAM0 (rwx) : ORIGIN = 0x02000000, LENGTH = 0x00400000
+  ITCM (rwx) : ORIGIN = 0x00000000, LENGTH = 0x00040000
+  DTCM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00100000
   MRAM  (rx)  : ORIGIN = 0x80000000, LENGTH = 0x00580000
   DISP  (rw)  : ORIGIN = 0x08100000, LENGTH = 0x00180000
 }
@@ -82,12 +81,17 @@ SECTIONS
     . = ALIGN(16);
   } > MRAM
 
-   .text.at_itcm1 : ALIGN(16)
+   .text.at_itcm : ALIGN(16)
   {
+    /* lvgl fast code */
     *(fast_code)
+
+    /* mp3 processing */
     *minimp3.c.obj(.text*)
+    *audio.c.obj(.text*)
+
     . = ALIGN(16);
-  } > ITCM1 AT> MRAM
+  } > ITCM AT> MRAM
 
   .text.at_mram : ALIGN(16)
   {
@@ -112,15 +116,12 @@ SECTIONS
   .copy.table : ALIGN(16)
   {
     __copy_table_start__ = .;
-    LONG (LOADADDR(.data.at_dtcm1))
-    LONG (ADDR(.data.at_dtcm1))
-    LONG (SIZEOF(.data.at_dtcm1)/4)
-    LONG (LOADADDR(.text.at_itcm1))
-    LONG (ADDR(.text.at_itcm1))
-    LONG (SIZEOF(.text.at_itcm1)/4)
-    LONG (LOADADDR(.data.at_sram0))
-    LONG (ADDR(.data.at_sram0))
-    LONG (SIZEOF(.data.at_sram0)/4)
+    LONG (LOADADDR(.data.at_dtcm))
+    LONG (ADDR(.data.at_dtcm))
+    LONG (SIZEOF(.data.at_dtcm)/4)
+    LONG (LOADADDR(.text.at_itcm))
+    LONG (ADDR(.text.at_itcm))
+    LONG (SIZEOF(.text.at_itcm)/4)
     __copy_table_end__ = .;
     . = ALIGN(16);
   } > MRAM
@@ -129,22 +130,15 @@ SECTIONS
   {
     __zero_table_start__ = .;
     /* Add each additional bss section here */
-    LONG (ADDR(.bss.at_dtcm1))
-    LONG (SIZEOF(.bss.at_dtcm1)/4)
+    LONG (ADDR(.bss.at_dtcm))
+    LONG (SIZEOF(.bss.at_dtcm)/4)
     __zero_table_end__ = .;
     . = ALIGN(16);
   } > MRAM
 
   __etext = .;
 
-   .data.at_sram0 : ALIGN(16)
-  {
-    *(.data.yes_no_go_stop_raw)
-    *(.data.go_stop_stereo_raw)
-    . = ALIGN(16);
-  } > SRAM0 AT> MRAM
-
-  .data.at_dtcm1 : ALIGN(16)
+  .data.at_dtcm : ALIGN(16)
   {
     __data_start__ = .;
     *(vtable)
@@ -175,31 +169,16 @@ SECTIONS
 
     __data_end__ = .;
     . = ALIGN(16);
-  } > DTCM1 AT> MRAM
+  } > DTCM AT> MRAM
 
-  .tdata.at.dtcm1 : ALIGN(16)
+  .tdata.at.dtcm : ALIGN(16)
   {
     /* thread-local data */
     __tls_base = .;
     __arm32_tls_tcb_offset = .;
     *(.tdata*)
     . = ALIGN(16);
-  } > DTCM1 AT> MRAM
-
-  /*
-   * Secondary data section, optional
-   *
-   * Each additional data section must be in
-   * the .copy.table above to asure proper
-   * initialization during startup.
-   */
-
-   /* Place non-zero code/data here if required in SRAM1 */
-/*
-  .data.at_sram1 : ALIGN(8)
-  {
-  } > SRAM1 AT> ITCM
-*/
+  } > DTCM AT> MRAM
 
  /* Force alignment of load region as SETools requires multiple of 16 */
   .padding : ALIGN(16)
@@ -215,24 +194,14 @@ SECTIONS
     *(.bss.disp_buff)
   } > DISP
 
-  /*
-   * Primary bss section
-   * Note! .bss.noinit areas are not zero initalized.
-   * Place last due to wildcard
-   */
-  .bss.noinit.at_dtcm1 (NOLOAD) : ALIGN(8)
-  {
-    *(.bss.noinit.memblock_dtcm1)
-  } > DTCM1
-
-  .bss.at_dtcm1 (NOLOAD) : ALIGN(8)
+   .bss.at_dtcm (NOLOAD) : ALIGN(8)
   {
     __bss_start__ = .;
     *(.bss)
     *(.bss.*)
     *(COMMON)
     __bss_end__ = .;
-  } > DTCM1
+  } > DTCM
 
   .heap (NOLOAD) : ALIGN(8)
   {
@@ -243,16 +212,16 @@ SECTIONS
     . = ALIGN(8);
     __HeapLimit = .;
     __heap_end = .;
-  } > DTCM1
+  } > DTCM
 
-  .stack (ORIGIN(DTCM1) + LENGTH(DTCM1) - __STACK_SIZE) (NOLOAD) : ALIGN(8)
+  .stack (ORIGIN(DTCM) + LENGTH(DTCM) - __STACK_SIZE) (NOLOAD) : ALIGN(8)
   {
     __StackLimit = .;
     __stack_limit = .;
     . = . + __STACK_SIZE;
     . = ALIGN(8);
     __StackTop = .;
-  } > DTCM1
+  } > DTCM
   PROVIDE(__stack = __StackTop);
 
   /* Check if data + heap + stack exceeds RAM limit */

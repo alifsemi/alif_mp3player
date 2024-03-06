@@ -137,6 +137,9 @@ target_sources(${PROJECT_NAME} PRIVATE
 
     # mpu
     ${SRC_PATH}/mpu/mpu.c
+
+    # the audio sample
+    ${SRC_PATH}/audio/audio_sample.c
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

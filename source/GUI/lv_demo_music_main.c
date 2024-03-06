@@ -18,7 +18,7 @@
 /*********************
  *      DEFINES
  *********************/
-#define ACTIVE_TRACK_CNT    2
+#define ACTIVE_TRACK_CNT    1
 #define INTRO_TIME          2000
 #define BAR_COLOR1          lv_color_hex(0xe9dbfc)
 #define BAR_COLOR2          lv_color_hex(0x6f8af6)

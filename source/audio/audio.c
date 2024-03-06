@@ -33,9 +33,11 @@
 
 #include "Driver_SAI.h"
 #include "audio.h"
-#include "mp3_sample.h"
 #include "wm8904_driver.h"
 #include "minimp3.h"
+
+#include "RTE_Components.h"
+#include CMSIS_device_header
 
 /* I2S_Driver */
 #define I2S_DAC 2                    /* DAC I2S Controller 2 */
@@ -63,6 +65,7 @@ static atomic_bool sending = false;     // streaming audio file
 static atomic_bool work_ready = false;  // working buffer filled with pcm data
 static atomic_bool eof = false;         // end of file reached for the audio file
 static atomic_bool paused = false;
+static atomic_bool cancelling = false;
 
 // Processed MP3 audio file, length and current decoding position
 static uint32_t audio_file_decoding_position;
@@ -94,6 +97,12 @@ static void DAC_Callback(uint32_t event)
     }
     if(event & ARM_SAI_EVENT_SEND_COMPLETE)
     {
+        if(cancelling)
+        {
+            cancelling = false;
+            return;
+        }
+
         if(!paused) {
             start_transmit_report_ending();
         }
@@ -229,12 +238,20 @@ static bool decode_next(void)
 int32_t audio_start_transmit(void)
 {
     if(sending)
-        return -1;
+    {
+        cancelling = true;
+        while(cancelling) {
+            __WFE();
+        }
+    }
 
     sending = true;
-    // TODO: these should come from outside the function
-    audio_file = go_stop_stereo_mp3;
-    audio_file_len = go_stop_stereo_mp3_len;
+    // TODO: these could come from outside the function
+    // but now we just expect them to be compiled in the binary somewhere
+    extern uint32_t audio_sample_mp3_len;
+    extern unsigned char* audio_sample;
+    audio_file = audio_sample;
+    audio_file_len = audio_sample_mp3_len;
     audio_file_decoding_position = 0;
 
     // reset data on start of new mp3 file playback
@@ -242,13 +259,13 @@ int32_t audio_start_transmit(void)
     work_ready = false;
     eof = false;
     paused = false;
+    cancelling = false;
     pcm = &pcm1[0];
 
     while(!decode_next());
 
     /* Transmit the samples */
-    start_transmit();
-    return 0;
+    return start_transmit();
 }
 
 bool audio_process_next(void)
