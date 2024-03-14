@@ -36,16 +36,15 @@ __HEAP_SIZE  = 0x00008000;
 
 /*
 * This linker script is for application to be executed by the
-* M55-HP core. For global shared memory, make sure the memory base and size
-* does not conflict with that in the M55-HE or other cores linker scripts
+* M55-HP core.
 */
 
 MEMORY
 {
-  ITCM (rwx) : ORIGIN = 0x00000000, LENGTH = 0x00040000
-  DTCM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00100000
+  ITCM  (rwx) : ORIGIN = 0x00000000, LENGTH = 0x00040000
+  DTCM  (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00100000
   MRAM  (rx)  : ORIGIN = 0x80000000, LENGTH = 0x00580000
-  DISP  (rw)  : ORIGIN = 0x08100000, LENGTH = 0x00180000
+  SRAM0 (rw)  : ORIGIN = 0x02000000, LENGTH = 0x00400000
 }
 
 
@@ -191,8 +190,9 @@ SECTIONS
 
   .bss.at_disp (NOLOAD) : ALIGN(8)
   {
+    /* Display buffer needs to be in SRAM0 when using default MPU configuration from CMSIS-dfp pack */
     *(.bss.disp_buff)
-  } > DISP
+  } > SRAM0
 
    .bss.at_dtcm (NOLOAD) : ALIGN(8)
   {

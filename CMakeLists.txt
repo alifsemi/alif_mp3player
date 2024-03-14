@@ -135,9 +135,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     ${SRC_PATH}/audio/wm8904_driver.c
     ${SRC_PATH}/audio/minimp3.c
 
-    # mpu
-    ${SRC_PATH}/mpu/mpu.c
-
     # the audio sample
     ${SRC_PATH}/audio/audio_sample.c
 )

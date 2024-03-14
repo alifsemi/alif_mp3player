@@ -1,4 +1,4 @@
-/* Copyright (C) 2023 Alif Semiconductor - All Rights Reserved.
+/* Copyright (C) 2024 Alif Semiconductor - All Rights Reserved.
  * Use, distribution and modification of this code is permitted under the
  * terms stated in the Alif Semiconductor Software License Agreement
  *
@@ -7,17 +7,6 @@
  * contact@alifsemi.com, or visit: https://alifsemi.com/license
  *
  */
-
-/**************************************************************************//**
- * @file     lv_port_disp.c
- * @author   Ahmad Rashed
- * @email    ahmad.rashed@alifsemi.com
- * @version  V1.0.0
- * @date     28-March-2022
- * @brief    for lvgl library display init with touch input
- * @bug      None.
- * @Note     None
- ******************************************************************************/
 
 /* System Includes */
 #include <stdio.h>
@@ -35,11 +24,6 @@
 /* CDC200 driver */
 #include "Driver_CDC200.h"
 
-/* PINMUX Driver */
-#include "pinconf.h"
-
-/* SE Services */
-#include "se_services_port.h"
 #include "lv_port_disp.h"
 #include "lv_port.h"
 
@@ -102,59 +86,14 @@ void hw_disp_cb(uint32_t event)
 static uint32_t hw_disp_init(void)
 {
     int ret = 0;
-    uint32_t  service_error_code;
-    uint32_t  error_code;
-    run_profile_t runp = {0};
-
-    /* Initialize the SE services */
-    se_services_port_init();
-
-    /* Enable MIPI Clocks */
-    error_code = SERVICES_clocks_enable_clock(se_services_s_handle, CLKEN_CLK_100M, true, &service_error_code);
-    if(error_code != SERVICES_REQ_SUCCESS)
-    {
-        printf("SE: MIPI 100MHz clock enable = %" PRIu32 "\n", error_code);
-        return error_code;
-    }
-
-    error_code = SERVICES_clocks_enable_clock(se_services_s_handle, CLKEN_HFOSC, true, &service_error_code);
-    if(error_code != SERVICES_REQ_SUCCESS)
-    {
-        printf("SE: MIPI 38.4Mhz(HFOSC) clock enable = %" PRIu32 "\n", error_code);
-        goto error_disable_100mhz_clk;
-    }
-
-    /* Get the current run configuration from SE */
-    error_code = SERVICES_get_run_cfg(se_services_s_handle,
-                                      &runp,
-                                      &service_error_code);
-    if(error_code)
-    {
-        printf("\r\nSE: get_run_cfg error = %" PRIu32 "\n", error_code);
-        goto error_disable_hfosc_clk;
-    }
-
-    runp.memory_blocks |= MRAM_MASK | SRAM0_MASK | SRAM1_MASK;
-
-    runp.phy_pwr_gating |= MIPI_PLL_DPHY_MASK | MIPI_TX_DPHY_MASK | MIPI_RX_DPHY_MASK | LDO_PHY_MASK;
-
-    /* Set the new run configuration */
-    error_code = SERVICES_set_run_cfg(se_services_s_handle,
-                                      &runp,
-                                      &service_error_code);
-    if(error_code)
-    {
-        printf("\r\nSE: set_run_cfg error = %" PRIu32 "\n", error_code);
-        goto error_disable_hfosc_clk;
-    }
-
+   
     /* Initialize CDC200 controller */
     ret = CDCdrv->Initialize(hw_disp_cb);
     if(ret != ARM_DRIVER_OK)
     {
         /* Error in CDC200 initialize */
         printf("\r\n Error: CDC200 initialization failed.\r\n");
-        goto error_disable_hfosc_clk;
+        return 1;
     }
 
     /* Power ON CDC200 controller */
@@ -213,16 +152,6 @@ error_CDC200_uninitialize:
         return 2;
     }
 
-error_disable_hfosc_clk:
-    error_code = SERVICES_clocks_enable_clock(se_services_s_handle, CLKEN_HFOSC, false, &service_error_code);
-    if(error_code != SERVICES_REQ_SUCCESS)
-        printf("SE: MIPI 38.4Mhz(HFOSC)  clock disable = %" PRIu32 "\n", error_code);
-
-error_disable_100mhz_clk:
-    error_code = SERVICES_clocks_enable_clock(se_services_s_handle, CLKEN_CLK_100M, false, &service_error_code);
-    if(error_code != SERVICES_REQ_SUCCESS)
-        printf("SE: MIPI 100MHz clock disable = %" PRIu32 "\n", error_code);
-
     return 3;
 }
 
@@ -234,56 +163,6 @@ error_disable_100mhz_clk:
 /* Touch screen driver instance */
 extern ARM_DRIVER_TOUCH_SCREEN GT911;
 static ARM_DRIVER_TOUCH_SCREEN *Drv_Touchscreen = &GT911;
-
-/**
-  \fn          int hardware_cfg(void)
-  \brief       i2c hardware pin initialization:
-                   -  PIN-MUX and PIN_PAD configuration
-               GPIO9 initialization:
-                   -  PIN-MUX and PIN-PAD configuration
-  \param[in]   none
-  \return      ARM_DRIVER_OK: success; -1: failure
-  */
-int hardware_cfg(void)
-{
-    int ret = 0;
-
-    /* Configure GPIO Pin : P9_4 as gpio pin
-     *   Pad function: PAD_FUNCTION_READ_ENABLE |
-     *                 PAD FUNCTION_DRIVER_DISABLE_STATE_WITH_PULL_UP |
-     *                 PADCTRL_SCHMITT_TRIGGER_ENABLE
-     */
-    ret = pinconf_set(PORT_9, PIN_4, PINMUX_ALTERNATE_FUNCTION_0, PADCTRL_READ_ENABLE | \
-            PADCTRL_DRIVER_DISABLED_PULL_UP | PADCTRL_SCHMITT_TRIGGER_ENABLE);
-    if(ret != ARM_DRIVER_OK)
-    {
-        return -1;
-    }
-
-   /* Configure GPIO Pin : P7_2 as i2c1_sda_c
-    * Pad function: PADCTRL_READ_ENABLE |
-    *               PAD PADCTRL_DRIVER_DISABLED_PULL_UP
-    */
-    ret = pinconf_set(PORT_7, PIN_2, PINMUX_ALTERNATE_FUNCTION_5, PADCTRL_READ_ENABLE | \
-            PADCTRL_DRIVER_DISABLED_PULL_UP);
-    if(ret != ARM_DRIVER_OK)
-    {
-        return -1;
-    }
-
-    /* Configure GPIO Pin : P7_3 as i2c1_scl_c
-     * Pad function: PADCTRL_READ_ENABLE |
-     *               PADCTRL_DRIVER_DISABLED_PULL_UP
-     */
-    ret = pinconf_set(PORT_7, PIN_3, PINMUX_ALTERNATE_FUNCTION_5, PADCTRL_READ_ENABLE | \
-            PADCTRL_DRIVER_DISABLED_PULL_UP);
-    if(ret != ARM_DRIVER_OK)
-    {
-        return -1;
-    }
-
-    return ARM_DRIVER_OK;
-}
 
 /**
   \function     static void lv_touch_get(lv_indev_drv_t * drv, lv_indev_data_t * data)
@@ -323,22 +202,13 @@ static uint32_t hw_touch_init(void)
 {
     int ret = 0;
 
-    /* Initialize i3c and GPIO2 hardware pins using PinMux Driver. */
-    ret = hardware_cfg();
-    if(ret != ARM_DRIVER_OK)
-    {
-        /* Error in hardware configuration */
-        printf("\r\n Error: Hardware configuration failed.\r\n");
-        return 90;
-    }
-
     /* Initialize GT911 touch screen */
     ret = Drv_Touchscreen->Initialize();
     if(ret != ARM_DRIVER_OK)
     {
         /* Error in GT911 touch screen initialize */
         printf("\r\n Error: GT911 touch screen initialization failed.\r\n");
-        goto error_GT911_uninitialize;
+        return ret;
     }
 
     /* Power ON GT911 touch screen */
@@ -416,8 +286,9 @@ uint32_t lv_port_disp_init(void)
 
     /* Display hardware initialization */
     uint32_t ret = hw_disp_init();
-    if (ret)
+    if (ret) {
         return ret;
+    }
 
 #if(I2C_TOUCH_ENABLE == 1)
     lv_indev_t * indev = lv_indev_create();
