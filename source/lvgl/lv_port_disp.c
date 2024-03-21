@@ -53,9 +53,6 @@ static uint8_t lcd_image2[DIMAGE_Y][DIMAGE_X][PIXEL_BYTES] __attribute__((sectio
 extern ARM_DRIVER_CDC200 Driver_CDC200;
 static ARM_DRIVER_CDC200 *CDCdrv = &Driver_CDC200;
 
-volatile uint8_t line_irq_status = 0;
-volatile uint8_t dsi_err = 0;
-
 /**
   \fn          void hw_disp_cb(uint32_t event)
   \brief       Display callback
@@ -64,17 +61,7 @@ volatile uint8_t dsi_err = 0;
   */
 void hw_disp_cb(uint32_t event)
 {
-    if(event & ARM_CDC_SCANLINE0_EVENT)
-    {
-        /* Received scan line event. */
-        line_irq_status = 1;
-    }
-
-    if(event & ARM_CDC_DSI_ERROR_EVENT)
-    {
-        /* Transfer Error: Received Hardware error, Wake-up Thread. */
-        dsi_err = 1;
-    }
+    (void)event;
 }
 
 /**
@@ -112,14 +99,6 @@ static uint32_t hw_disp_init(void)
         /* Error in CDC200 control configuration */
         printf("\r\n Error: CDC200 control configuration failed.\r\n");
         goto error_CDC200_poweroff;
-    }
-
-    /* Configure CDC200 controller */
-    ret = CDCdrv->Control(CDC200_SCANLINE0_EVENT, ENABLE);
-    if(ret != ARM_DRIVER_OK)
-    {
-        /* Error in CDC200 control configuration */
-        printf("\r\n Error: CDC200 control configuration failed.\r\n");
     }
 
     /* Start CDC200 controller */
@@ -247,11 +226,6 @@ static void lv_disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t *
 {
     (void)area;
     int ret = 0 ;
-
-    if(line_irq_status == 0)
-        return;
-
-    line_irq_status = 0;
 
     /* Configure CDC200 controller */
     ret = CDCdrv->Control(CDC200_FRAMEBUF_UPDATE, (uint32_t) px_map);

@@ -112,7 +112,7 @@ SECTIONS
   . = ALIGN(16);
   } > MRAM
 
-  .copy.table : ALIGN(16)
+  .copy.table (READONLY) : ALIGN(16)
   {
     __copy_table_start__ = .;
     LONG (LOADADDR(.data.at_dtcm))
@@ -125,7 +125,7 @@ SECTIONS
     . = ALIGN(16);
   } > MRAM
 
-  .zero.table : ALIGN(16)
+  .zero.table (READONLY) : ALIGN(16)
   {
     __zero_table_start__ = .;
     /* Add each additional bss section here */

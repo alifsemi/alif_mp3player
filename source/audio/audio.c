@@ -123,7 +123,7 @@ int32_t audio_init(audio_end_cb audio_cb)
 
     /* Verify the I2S API version for compatibility */
     version = i2s_dac->GetVersion();
-    printf("I2S API version = %d\n", version.api);
+    printf("I2S API version = %" PRIu16 "\n", version.api);
 
     if (audio_cb == NULL) {
         return ARM_DRIVER_ERROR_PARAMETER;
@@ -141,14 +141,14 @@ int32_t audio_init(audio_end_cb audio_cb)
     /* Initializes I2S0 interface */
     status = i2s_dac->Initialize(DAC_Callback);
     if(status) {
-        printf("DAC Init failed status = %ld\n", status);
+        printf("DAC Init failed status = %" PRId32 "\n", status);
         return -1;
     }
 
     /* Enable the power for I2S0 */
     status = i2s_dac->PowerControl(ARM_POWER_FULL);
     if(status) {
-        printf("DAC Power Failed status = %ld\n", status);
+        printf("DAC Power Failed status = %" PRId32 "\n", status);
         return -1;
     }
 
@@ -159,14 +159,14 @@ int32_t audio_init(audio_end_cb audio_cb)
                                 ARM_SAI_PROTOCOL_I2S |
                                 ARM_SAI_DATA_SIZE(wlen), wlen*2, SAMPLE_RATE);
     if(status) {
-        printf("DAC Control status = %ld\n", status);
+        printf("DAC Control status = %" PRId32 "\n", status);
         return -1;
     }
 
     /* enable Transmitter */
     status = i2s_dac->Control(ARM_SAI_CONTROL_TX, 1, 0);
     if(status) {
-        printf("DAC TX status = %ld\n", status);
+        printf("DAC TX status = %" PRId32 "\n", status);
         return -1;
     }
 

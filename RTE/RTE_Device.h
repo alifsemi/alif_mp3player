@@ -1672,7 +1672,7 @@
 // <h> I2S  (Integrated Interchip Sound)
 // <e> I2S0 (Integrated Interchip Sound 0) [Driver_SAI0]
 // <i> Configuration settings for Driver_SAI0 in component ::Drivers:SAI
-#define RTE_I2S0   1
+#define RTE_I2S0   0
 
 #if RTE_I2S0
 
@@ -1759,7 +1759,7 @@
 
 // <e> I2S1 (Integrated Interchip Sound 1) [Driver_SAI1]
 // <i> Configuration settings for Driver_SAI1 in component ::Drivers:SAI
-#define RTE_I2S1   1
+#define RTE_I2S1   0
 
 #if RTE_I2S1
 
@@ -1931,7 +1931,7 @@
 
 // <e> I2S3 (Integrated Interchip Sound 3) [Driver_SAI3]
 // <i> Configuration settings for Driver_SAI3 in component ::Drivers:SAI
-#define RTE_I2S3   1
+#define RTE_I2S3   0
 
 #if RTE_I2S3
 
@@ -2019,7 +2019,7 @@
 // <i> Configuration settings for Driver_SAILP in component ::Drivers:SAI
 #if defined(M55_HE)
 
-#define RTE_LPI2S     1
+#define RTE_LPI2S     0
 
 #if RTE_LPI2S
 
@@ -2276,7 +2276,7 @@
 
 // <e> UART3 (Universal asynchronous receiver transmitter) [Driver_USART3]
 // <i> Configuration settings for Driver_USART3 in component ::Drivers:USART
-#define RTE_UART3   1
+#define RTE_UART3   0
 
 #if RTE_UART3
 
@@ -2467,7 +2467,7 @@
 
 // <e> UART6 (Universal asynchronous receiver transmitter) [Driver_USART6]
 // <i> Configuration settings for Driver_USART6 in component ::Drivers:USART
-#define RTE_UART6   1
+#define RTE_UART6   0
 
 #if RTE_UART6
 
@@ -7236,7 +7236,7 @@
 // <e> I2C (Inter Integrated Circuit) [Driver_I2C2]
 // <i> Configuration settings for Driver_I2C2 in component ::Drivers:I2C
 
-#define RTE_I2C2                     1
+#define RTE_I2C2                     0
 #if RTE_I2C2
 
 // <o> I2C2 IRQ priority <0-255>
@@ -7258,7 +7258,7 @@
 // <e> I2C (Inter Integrated Circuit) [Driver_I2C3]
 // <i> Configuration settings for Driver_I2C3 in component ::Drivers:I2C
 
-#define RTE_I2C3                     1
+#define RTE_I2C3                     0
 
 #if RTE_I2C3
 
@@ -7281,7 +7281,7 @@
 // <e> LPI2C (Low Power Inter-Integrated Circuit) [Driver_LPI2C]
 // <i> Configuration settings for Driver_LPI2C in component ::Drivers:LPI2C
 #if defined(M55_HE)
-#define RTE_LPI2C   1
+#define RTE_LPI2C   0
 #if RTE_LPI2C
 
 // <o> LPI2C IRQ PRIORITY <0-225>
@@ -7379,7 +7379,7 @@
 // <h> GPIO (general purpose input and output)
 // <e> GPIO0
 // <i> Configuration settings for Driver_GPIO0 in component ::Drivers:GPIO
-#define RTE_GPIO0   1
+#define RTE_GPIO0   0
 
 #if RTE_GPIO0
 
@@ -7432,7 +7432,7 @@
 
 // <e> GPIO1
 // <i> Configuration settings for Driver_GPIO1 in component ::Drivers:GPIO
-#define RTE_GPIO1   1
+#define RTE_GPIO1   0
 
 #if RTE_GPIO1
 
@@ -7485,7 +7485,7 @@
 
 // <e> GPIO2
 // <i> Configuration settings for Driver_GPIO2 in component ::Drivers:GPIO
-#define RTE_GPIO2   1
+#define RTE_GPIO2   0
 
 #if RTE_GPIO2
 
@@ -7538,7 +7538,7 @@
 
 // <e> GPIO3
 // <i> Configuration settings for Driver_GPIO3 in component ::Drivers:GPIO
-#define RTE_GPIO3   1
+#define RTE_GPIO3   0
 
 #if RTE_GPIO3
 
@@ -7757,7 +7757,7 @@
 
 // <e> GPIO5
 // <i> Configuration settings for Driver_GPIO5 in component ::Drivers:GPIO
-#define RTE_GPIO5   1
+#define RTE_GPIO5   0
 
 #if RTE_GPIO5
 
@@ -7972,7 +7972,7 @@
 
 // <e> GPIO8
 // <i> Configuration settings for Driver_GPIO8 in component ::Drivers:GPIO
-#define RTE_GPIO8   1
+#define RTE_GPIO8   0
 
 #if RTE_GPIO8
 
@@ -8190,7 +8190,7 @@
 
 // <e> GPIO10
 // <i> Configuration settings for Driver_GPIO10 in component ::Drivers:GPIO
-#define RTE_GPIO10   1
+#define RTE_GPIO10   0
 
 #if RTE_GPIO10
 
@@ -8243,7 +8243,7 @@
 
 // <e> GPIO11
 // <i> Configuration settings for Driver_GPIO11 in component ::Drivers:GPIO
-#define RTE_GPIO11   1
+#define RTE_GPIO11   0
 
 #if RTE_GPIO11
 
@@ -8349,7 +8349,7 @@
 
 // <e> GPIO13
 // <i> Configuration settings for Driver_GPIO13 in component ::Drivers:GPIO
-#define RTE_GPIO13   1
+#define RTE_GPIO13   0
 
 #if RTE_GPIO13
 
@@ -8402,7 +8402,7 @@
 
 // <e> GPIO14
 // <i> Configuration settings for Driver_GPIO14 in component ::Drivers:GPIO
-#define RTE_GPIO14   1
+#define RTE_GPIO14   0
 
 #if RTE_GPIO14
 
