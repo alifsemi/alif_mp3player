@@ -8,7 +8,7 @@ The GUI is a slightly modified version of LVGL music player demo, modified files
 This demo requires a working Gen2 Appkit with attached display. For audio playback, attach headphones or speakers to the HEADPHONES socket on the board.
 
 ## Building
-The project uses CMAKE for build configuration and GCC for compilation and linking. The project has several submodules which have to be initiated before building.
+The project uses CMAKE for build configuration and GCC or ARMCLang for compilation and linking. The project has several submodules which have to be initiated before building.
 
 Example:
 1. git submodule update --init
@@ -18,6 +18,9 @@ Example:
 1. make -j
 
 The resulting binary and elf file are located in the bin directory under the build_dir.
+
+## Changing core
+By default, the project is built to target M55_HP core. HE core can be selected by adding -DENSEMBLE_CORE=M55_HE to the cmake command.
 
 ## Changing the audio sample
 The project expects an MP3 file in stereo format and 48 KHz sample rate. The file is then placed directly into the source code as a buffer and stored to MRAM along with the application.
@@ -32,4 +35,4 @@ The project expects an MP3 file in stereo format and 48 KHz sample rate. The fil
 1. rebuild the project
 
 ## Running the demo
-Use either debugger or SEtools to store the image to MRAM. The binary should be placed to start of MRAM ("mramAddress": "0x80000000") and set to be executed on M55 HP.
+Use either debugger or SEtools to store the image to MRAM. The binary should be placed to start of MRAM ("mramAddress": "0x80000000") and set to be executed on the selected core.
