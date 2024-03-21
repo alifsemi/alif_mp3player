@@ -54,7 +54,7 @@ static int init_clocks()
     }
 
     // Only MRAM and SRAM0 are used (besides TCMs)
-    runp.memory_blocks |= MRAM_MASK | SRAM0_MASK;
+    runp.memory_blocks |= MRAM_MASK | SRAM0_MASK | SRAM1_MASK;
 
     runp.phy_pwr_gating |= MIPI_PLL_DPHY_MASK | MIPI_TX_DPHY_MASK | MIPI_RX_DPHY_MASK | LDO_PHY_MASK;
 
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 
     while (1)
     {
-        bool ready = audio_process_nexts(10);
+        bool ready = audio_process_nexts(8);
         lv_timer_handler_run_in_period(20);
         flush_uart();
         if(ready) {
