@@ -973,6 +973,16 @@ static void timer_cb(lv_timer_t * t)
 static void spectrum_end_cb(lv_anim_t * a)
 {
     LV_UNUSED(a);
+    spectrum_i = 0;
+    lv_anim_t b;
+    lv_anim_init(&b);
+    lv_anim_set_values(&b, spectrum_i, spectrum_len - 1);
+    lv_anim_set_exec_cb(&b, spectrum_anim_cb);
+    lv_anim_set_var(&b, spectrum_obj);
+    lv_anim_set_duration(&b, ((spectrum_len - spectrum_i) * 1000) / 30);
+    lv_anim_set_playback_duration(&b, 0);
+    lv_anim_set_completed_cb(&b, spectrum_end_cb);
+    lv_anim_start(&b);
 }
 
 static void stop_start_anim(lv_timer_t * t)
