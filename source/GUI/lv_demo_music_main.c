@@ -23,13 +23,8 @@
 #define BAR_COLOR1          lv_color_hex(0xe9dbfc)
 #define BAR_COLOR2          lv_color_hex(0x6f8af6)
 #define BAR_COLOR3          lv_color_hex(0xffffff)
-#if LV_DEMO_MUSIC_LARGE
-    #define BAR_COLOR1_STOP     160
-    #define BAR_COLOR2_STOP     200
-#else
-    #define BAR_COLOR1_STOP     80
-    #define BAR_COLOR2_STOP     100
-#endif
+#define BAR_COLOR1_STOP     160
+#define BAR_COLOR2_STOP     200
 #define BAR_COLOR3_STOP     (2 * LV_HOR_RES / 3)
 #define BAR_CNT             20
 #define DEG_STEP            (180/BAR_CNT)
@@ -128,7 +123,6 @@ lv_obj_t * _lv_demo_music_main_create(lv_obj_t * parent)
     font_small = LV_FONT_DEFAULT;
     font_large = LV_FONT_DEFAULT;
 
-#if LV_DEMO_MUSIC_LARGE
 #if LV_FONT_MONTSERRAT_22
     font_small = &lv_font_montserrat_22;
 #else
@@ -138,18 +132,6 @@ lv_obj_t * _lv_demo_music_main_create(lv_obj_t * parent)
     font_large = &lv_font_montserrat_32;
 #else
     LV_LOG_WARN("LV_FONT_MONTSERRAT_32 is not enabled for the music demo. Using LV_FONT_DEFAULT instead.");
-#endif
-#else
-#if LV_FONT_MONTSERRAT_12
-    font_small = &lv_font_montserrat_12;
-#else
-    LV_LOG_WARN("LV_FONT_MONTSERRAT_12 is not enabled for the music demo. Using LV_FONT_DEFAULT instead.");
-#endif
-#if LV_FONT_MONTSERRAT_16
-    font_large = &lv_font_montserrat_16;
-#else
-    LV_LOG_WARN("LV_FONT_MONTSERRAT_16 is not enabled for the music demo. Using LV_FONT_DEFAULT instead.");
-#endif
 #endif
 
     /*Create the content of the music player*/
@@ -197,11 +179,7 @@ lv_obj_t * _lv_demo_music_main_create(lv_obj_t * parent)
                                         LV_GRID_FR(3),   /*Spacer*/
                                         LV_GRID_CONTENT,
                                         LV_GRID_FR(3),   /*Spacer*/
-# if LV_DEMO_MUSIC_LARGE == 0
-                                        250,    /*Spectrum obj*/
-# else
                                         480,   /*Spectrum obj*/
-# endif
                                         LV_GRID_FR(3),   /*Spacer*/
                                         LV_GRID_CONTENT, /*Control box*/
                                         LV_GRID_FR(3),   /*Spacer*/
@@ -287,7 +265,7 @@ lv_obj_t * _lv_demo_music_main_create(lv_obj_t * parent)
     lv_obj_move_foreground(logo);
 
     lv_obj_t * title = lv_label_create(lv_screen_active());
-    lv_label_set_text(title, "LVGL Demo\nMusic player");
+    lv_label_set_text(title, "MP3 player");
     lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_style_text_font(title, font_large, 0);
     lv_obj_set_style_text_line_space(title, 8, 0);
@@ -354,7 +332,6 @@ void _lv_demo_music_resume(void)
     lv_anim_start(&a);
 
     if(sec_counter_timer) lv_timer_resume(sec_counter_timer);
-    lv_slider_set_range(slider_obj, 0, _lv_demo_music_get_track_length(track_id));
 
     lv_obj_add_state(play_obj, LV_STATE_CHECKED);
 }
@@ -513,11 +490,7 @@ static lv_obj_t * create_spectrum_obj(lv_obj_t * parent)
     /*Create the spectrum visualizer*/
     lv_obj_t * obj = lv_obj_create(parent);
     lv_obj_remove_style_all(obj);
-#if LV_DEMO_MUSIC_LARGE
     lv_obj_set_height(obj, 500);
-#else
-    lv_obj_set_height(obj, 250);
-#endif
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_event_cb(obj, spectrum_draw_event_cb, LV_EVENT_ALL, NULL);
     lv_obj_refresh_ext_draw_size(obj);
@@ -531,11 +504,8 @@ static lv_obj_t * create_ctrl_box(lv_obj_t * parent)
     lv_obj_t * cont = lv_obj_create(parent);
     lv_obj_remove_style_all(cont);
     lv_obj_set_height(cont, LV_SIZE_CONTENT);
-#if LV_DEMO_MUSIC_LARGE
     lv_obj_set_style_pad_bottom(cont, 17, 0);
-#else
-    lv_obj_set_style_pad_bottom(cont, 8, 0);
-#endif
+
     static const int32_t grid_col[] = {LV_GRID_FR(2), LV_GRID_FR(3), LV_GRID_FR(5), LV_GRID_FR(5), LV_GRID_FR(5), LV_GRID_FR(3), LV_GRID_FR(2), LV_GRID_TEMPLATE_LAST};
     static const int32_t grid_row[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(cont, grid_col, grid_row);
@@ -573,11 +543,7 @@ static lv_obj_t * create_ctrl_box(lv_obj_t * parent)
     lv_obj_set_style_anim_duration(slider_obj, 100, 0);
     lv_obj_add_flag(slider_obj, LV_OBJ_FLAG_CLICKABLE); /*No input from the slider*/
 
-#if LV_DEMO_MUSIC_LARGE == 0
-    lv_obj_set_height(slider_obj, 3);
-#else
     lv_obj_set_height(slider_obj, 6);
-#endif
     lv_obj_set_grid_cell(slider_obj, LV_GRID_ALIGN_STRETCH, 1, 4, LV_GRID_ALIGN_CENTER, 1, 1);
 
     lv_obj_set_style_bg_image_src(slider_obj, &img_lv_demo_music_slider_knob, LV_PART_KNOB);
@@ -616,11 +582,7 @@ static lv_obj_t * create_handle(lv_obj_t * parent)
     lv_obj_set_style_text_color(handle_label, lv_color_hex(0x8a86b8), 0);
 
     lv_obj_t * handle_rect = lv_obj_create(cont);
-#if LV_DEMO_MUSIC_LARGE
     lv_obj_set_size(handle_rect, 40, 3);
-#else
-    lv_obj_set_size(handle_rect, 20, 2);
-#endif
 
     lv_obj_set_style_bg_color(handle_rect, lv_color_hex(0x8a86b8), 0);
     lv_obj_set_style_border_width(handle_rect, 0, 0);
@@ -651,6 +613,8 @@ static void track_load(uint32_t id)
     lv_label_set_text(title_label, _lv_demo_music_get_title(track_id));
     lv_label_set_text(artist_label, _lv_demo_music_get_artist(track_id));
     lv_label_set_text(genre_label, _lv_demo_music_get_genre(track_id));
+
+    lv_slider_set_range(slider_obj, 0, _lv_demo_music_get_track_length(track_id));
 
     lv_anim_t a;
     lv_anim_init(&a);
@@ -769,11 +733,8 @@ static void spectrum_draw_event_cb(lv_event_t * e)
         uint32_t i;
 
         int32_t min_a = 5;
-#if LV_DEMO_MUSIC_LARGE == 0
-        int32_t r_in = 1;
-#else
         int32_t r_in = 160;
-#endif
+
         r_in = (r_in * lv_image_get_scale(album_image_obj)) >> 8;
         for(i = 0; i < BAR_CNT; i++) r[i] = r_in + min_a + 77;
 
