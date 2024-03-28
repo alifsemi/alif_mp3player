@@ -183,3 +183,15 @@ int32_t WM8904_Codec_Init(void)
     }
    	return WM8904_QSUS();
 }
+
+void WM8904_Set_Volume(uint8_t volume)
+{
+    if(volume > 100) {
+        return;
+    }
+
+    // TODO: change the linear desibel scale to logarithmic
+    uint16_t new_output_volume = (uint16_t)((0xC0 * (int)volume) / 100);
+    WM8904_WriteData(WM8904_DAC_DIGITAL_VOLUME_LEFT, new_output_volume);              // set left volume but don't update yet
+    WM8904_WriteData(WM8904_DAC_DIGITAL_VOLUME_RIGHT, DAC_DG_VU | new_output_volume); // set right volume and update volumes for both channels
+}

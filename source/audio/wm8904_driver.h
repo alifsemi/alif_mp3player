@@ -215,6 +215,9 @@
  */
 #define DAC_DG_VR_DACR_VOL                        0x008A
 
+// Bit to apply volume setting
+#define DAC_DG_VU                                 0x0100
+
 /*
  * R40 (0x28) - DRC 0
  */
@@ -245,3 +248,6 @@
 
 //Function Definitions//
 int32_t WM8904_Codec_Init(void);
+
+/* Set output volume, scale 0..100 */
+void WM8904_Set_Volume(uint8_t volume);

@@ -54,6 +54,8 @@ static void album_gesture_event_cb(lv_event_t * e);
 static void play_event_click_cb(lv_event_t * e);
 static void prev_click_event_cb(lv_event_t * e);
 static void next_click_event_cb(lv_event_t * e);
+static void volume_button_clicked_cb(lv_event_t * e);
+static void volume_changed_cb(lv_event_t* e);
 static void timer_cb(lv_timer_t * t);
 static void track_load(uint32_t id);
 static void stop_start_anim(lv_timer_t * t);
@@ -91,6 +93,8 @@ static lv_obj_t * play_obj;
 static const uint16_t (* spectrum)[4];
 static uint32_t spectrum_len;
 static const uint16_t rnd_array[30] = {994, 285, 553, 11, 792, 707, 966, 641, 852, 827, 44, 352, 146, 581, 490, 80, 729, 58, 695, 940, 724, 561, 124, 653, 27, 292, 557, 506, 382, 199};
+static int volume = 100;
+static lv_obj_t* volume_label;
 
 /**********************
  *      MACROS
@@ -538,6 +542,14 @@ static lv_obj_t * create_ctrl_box(lv_obj_t * parent)
     lv_obj_add_event_cb(icon, next_click_event_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_add_flag(icon, LV_OBJ_FLAG_CLICKABLE);
 
+    icon = lv_button_create(cont);
+    volume_label = lv_label_create(icon);
+    lv_label_set_text(volume_label, "V");
+    lv_obj_center(volume_label);
+    lv_obj_set_grid_cell(icon, LV_GRID_ALIGN_CENTER, 5, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+    lv_obj_add_event_cb(icon, volume_button_clicked_cb, LV_EVENT_CLICKED, 0);
+    lv_obj_add_flag(icon, LV_OBJ_FLAG_CLICKABLE);
+
     LV_IMAGE_DECLARE(img_lv_demo_music_slider_knob);
     slider_obj = lv_slider_create(cont);
     lv_obj_set_style_anim_duration(slider_obj, 100, 0);
@@ -957,4 +969,37 @@ static void album_fade_anim_cb(void * var, int32_t v)
 {
     lv_obj_set_style_image_opa(var, v, 0);
 }
+
+static void volume_changed_cb(lv_event_t* e)
+{
+    lv_obj_t* slider = lv_event_get_target(e);
+    volume = lv_slider_get_value(slider);
+    lv_obj_t* msgbox = lv_event_get_user_data(e);
+    lv_msgbox_close(msgbox);
+    audio_set_volume(volume);
+    if(volume == 0) {
+        lv_label_set_text(volume_label, "-");
+    }
+    else if(volume <= 50) {
+        lv_label_set_text(volume_label, "v");
+    }
+    else {
+        lv_label_set_text(volume_label, "V");
+    }
+}
+
+static void volume_button_clicked_cb(lv_event_t * e)
+{
+    LV_UNUSED(e);
+    lv_obj_t* volume_msgbox = lv_msgbox_create(0);
+    lv_obj_t* cont = lv_msgbox_get_content(volume_msgbox);
+    lv_obj_t* slider = lv_slider_create(cont);
+    lv_slider_set_range(slider, 0, 100);
+    lv_slider_set_value(slider, volume, LV_ANIM_OFF);
+    lv_obj_center(slider);
+    lv_obj_set_style_anim_duration(slider, 2000, 0);
+    lv_obj_add_event_cb(slider, volume_changed_cb, LV_EVENT_RELEASED, volume_msgbox);
+    
+}
+
 #endif /*LV_USE_DEMO_MUSIC*/

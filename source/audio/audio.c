@@ -318,3 +318,8 @@ void audio_resume(void)
         audio_start_transmit();
     }
 }
+
+void audio_set_volume(uint8_t volume)
+{
+    WM8904_Set_Volume(volume);
+}

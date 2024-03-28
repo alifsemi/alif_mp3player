@@ -35,4 +35,6 @@ void audio_pause(void);
 // Resume the playback
 void audio_resume(void);
 
+void audio_set_volume(uint8_t volume);
+
 #endif // #ifndef AUDIO_H
