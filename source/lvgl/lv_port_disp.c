@@ -150,6 +150,9 @@ static ARM_DRIVER_TOUCH_SCREEN *Drv_Touchscreen = &GT911;
                 data: data to LVGL driver
   \return       none
   */
+
+static ARM_TOUCH_COORDINATES last;
+
 static void lv_touch_get(lv_indev_t * indev, lv_indev_data_t * data)
 {
     (void)indev;
@@ -159,14 +162,17 @@ static void lv_touch_get(lv_indev_t * indev, lv_indev_data_t * data)
     if(status.numtouches)
     {
         data->state = LV_INDEV_STATE_PRESSED;
+        data->point.x = status.coordinates[0].x;
+        data->point.y = status.coordinates[0].y;
+        last.x = status.coordinates[0].x;
+        last.y = status.coordinates[0].y;
     }
     else
     {
         data->state = LV_INDEV_STATE_RELEASED;
+        data->point.x = last.x;
+        data->point.y = last.y;
     }
-
-    data->point.x = status.coordinates[0].x;
-    data->point.y = status.coordinates[0].y;
 }
 
 /**
