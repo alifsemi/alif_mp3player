@@ -79,10 +79,7 @@ static int init_clocks()
 
 static void audio_ended(uint32_t error)
 {
-    (void)error;
-    _lv_demo_music_playback_stopped();
-    _lv_demo_music_album_next(true);
-    audio_load_track();
+    _lv_demo_audio_stopped(error);
 }
 
 int main(int argc, char* argv[])

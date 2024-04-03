@@ -122,6 +122,34 @@ static void _obj_set_x_anim_cb(void * obj, int32_t x)
     lv_obj_set_x((lv_obj_t *)obj, (int32_t)x);
 }
 
+static void playback_stopped_async_cb(void* e)
+{
+    uint32_t error = (uint32_t)e;
+    _lv_demo_music_playback_stopped();
+    if (error == AUDIO_END_STATUS_ENDED) {
+        _lv_demo_music_album_next(true);
+    }
+    else {
+        lv_obj_t* msgbox = lv_msgbox_create(lv_screen_active());
+        lv_msgbox_add_title(msgbox, "Playback error");
+        if(error == AUDIO_END_STATUS_STREAM_UNDERFLOW) {
+            lv_msgbox_add_text(msgbox, "Stream undeflow");
+        }
+        else if(error == AUDIO_END_STATUS_DRIVER_ERROR) {
+            lv_msgbox_add_text(msgbox, "Driver error");
+        }
+        else {
+            lv_msgbox_add_text(msgbox, "Unknown error");
+        }
+        lv_msgbox_add_close_button(msgbox);
+    }
+}
+
+void _lv_demo_audio_stopped(uint32_t error)
+{
+    lv_async_call(playback_stopped_async_cb, (void*)error);
+}
+
 lv_obj_t * _lv_demo_music_main_create(lv_obj_t * parent)
 {
     font_small = LV_FONT_DEFAULT;
@@ -525,6 +553,7 @@ static lv_obj_t * create_ctrl_box(lv_obj_t * parent)
     lv_image_set_src(icon, &img_lv_demo_music_btn_prev);
     lv_obj_set_grid_cell(icon, LV_GRID_ALIGN_CENTER, 2, 1, LV_GRID_ALIGN_CENTER, 0, 1);
     lv_obj_add_event_cb(icon, prev_click_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_flag(icon, LV_OBJ_FLAG_CLICKABLE);
 
     play_obj = lv_imagebutton_create(cont);
     lv_imagebutton_set_src(play_obj, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_lv_demo_music_btn_play, NULL);
@@ -554,7 +583,7 @@ static lv_obj_t * create_ctrl_box(lv_obj_t * parent)
     slider_obj = lv_slider_create(cont);
     lv_obj_set_style_anim_duration(slider_obj, 100, 0);
     lv_obj_add_flag(slider_obj, LV_OBJ_FLAG_CLICKABLE); /*No input from the slider*/
-
+    lv_slider_set_range(slider_obj, 0, _lv_demo_music_get_track_length(track_id));
     lv_obj_set_height(slider_obj, 6);
     lv_obj_set_grid_cell(slider_obj, LV_GRID_ALIGN_STRETCH, 1, 4, LV_GRID_ALIGN_CENTER, 1, 1);
 
@@ -991,7 +1020,7 @@ static void volume_changed_cb(lv_event_t* e)
 static void volume_button_clicked_cb(lv_event_t * e)
 {
     LV_UNUSED(e);
-    lv_obj_t* volume_msgbox = lv_msgbox_create(0);
+    lv_obj_t* volume_msgbox = lv_msgbox_create(lv_screen_active());
     lv_obj_t* cont = lv_msgbox_get_content(volume_msgbox);
     lv_obj_t* slider = lv_slider_create(cont);
     lv_slider_set_range(slider, 0, 100);
@@ -999,7 +1028,6 @@ static void volume_button_clicked_cb(lv_event_t * e)
     lv_obj_center(slider);
     lv_obj_set_style_anim_duration(slider, 2000, 0);
     lv_obj_add_event_cb(slider, volume_changed_cb, LV_EVENT_RELEASED, volume_msgbox);
-    
 }
 
 #endif /*LV_USE_DEMO_MUSIC*/
