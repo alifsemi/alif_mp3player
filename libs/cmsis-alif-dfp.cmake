@@ -10,6 +10,7 @@ add_library(ensemblecmsis_interface INTERFACE)
 target_include_directories(ensemblecmsis_interface INTERFACE
     ${ALIF_DRIVER_DIR}/Include
     ${ALIF_DRIVER_DIR}/Include/config
+    ${ALIF_DRIVER_DIR}/Source
     ${ALIF_COMPONENTS_DIR}/Include
     ${ALIF_COMPONENTS_DIR}/Source
     ${ALIF_PACK_DIR}/drivers/include

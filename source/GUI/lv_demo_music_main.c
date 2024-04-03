@@ -14,6 +14,7 @@
 #include "assets/spectrum_2.h"
 
 #include "audio.h"
+#include "lv_port_disp.h"
 
 /*********************
  *      DEFINES
@@ -30,6 +31,8 @@
 #define DEG_STEP            (180/BAR_CNT)
 #define BAND_CNT            4
 #define BAR_PER_BAND_CNT    (BAR_CNT / BAND_CNT)
+#define SCREEN_OFF_INACTIVITY_TIME_MS 20000
+#define SCREEN_INACTIVITY_MONITOR_INTERVAL_MS 100
 
 /**********************
  *      TYPEDEFS
@@ -89,12 +92,19 @@ static uint32_t track_id;
 static bool playing;
 static bool start_anim;
 static int32_t start_anim_values[40];
-static lv_obj_t * play_obj;
 static const uint16_t (* spectrum)[4];
 static uint32_t spectrum_len;
 static const uint16_t rnd_array[30] = {994, 285, 553, 11, 792, 707, 966, 641, 852, 827, 44, 352, 146, 581, 490, 80, 729, 58, 695, 940, 724, 561, 124, 653, 27, 292, 557, 506, 382, 199};
 static int volume = 100;
 static lv_obj_t* volume_label;
+static bool screen_on = true;
+
+#define CLICKABLE_PLAY 0
+#define CLICKABLE_PREVIOUS 1
+#define CLICKABLE_NEXT 2
+#define CLICKABLE_VOLUME 3
+
+static lv_obj_t* clickables[4];
 
 /**********************
  *      MACROS
@@ -148,6 +158,50 @@ static void playback_stopped_async_cb(void* e)
 void _lv_demo_audio_stopped(uint32_t error)
 {
     lv_async_call(playback_stopped_async_cb, (void*)error);
+}
+
+static void disp_screen_off()
+{
+    if(screen_on) {
+        for(unsigned int i = 0; i < sizeof(clickables) / sizeof(clickables[0]); i++) {
+            lv_obj_update_flag(clickables[i], LV_OBJ_FLAG_CLICKABLE, false);
+        }
+        lv_port_disp_off();
+        screen_on = false;
+    }
+}
+
+static void disp_screen_on()
+{
+    if(!screen_on) {
+        for(unsigned int i = 0; i < sizeof(clickables) / sizeof(clickables[0]); i++) {
+            lv_obj_update_flag(clickables[i], LV_OBJ_FLAG_CLICKABLE, true);
+        }
+        lv_port_disp_on();
+        screen_on = true;
+    }
+}
+
+static void inactivity_handler(lv_timer_t* t)
+{
+    LV_UNUSED(t);
+    // get inactivity time in ms from all displays
+    uint32_t inactivity_time = lv_disp_get_inactive_time(0);
+    if(inactivity_time > SCREEN_OFF_INACTIVITY_TIME_MS)
+    {
+        disp_screen_off();
+    }
+    else
+    {
+        disp_screen_on();
+    }
+}
+
+static void create_inactivity_monitor()
+{
+    // check inactivity periodically
+    lv_timer_t* timer = lv_timer_create(inactivity_handler, SCREEN_INACTIVITY_MONITOR_INTERVAL_MS, 0);
+    lv_timer_set_repeat_count(timer, -1);
 }
 
 lv_obj_t * _lv_demo_music_main_create(lv_obj_t * parent)
@@ -315,6 +369,8 @@ lv_obj_t * _lv_demo_music_main_create(lv_obj_t * parent)
 
     lv_obj_update_layout(main_cont);
 
+    create_inactivity_monitor();
+
     return main_cont;
 }
 
@@ -365,7 +421,7 @@ void _lv_demo_music_resume(void)
 
     if(sec_counter_timer) lv_timer_resume(sec_counter_timer);
 
-    lv_obj_add_state(play_obj, LV_STATE_CHECKED);
+    lv_obj_add_state(clickables[CLICKABLE_PLAY], LV_STATE_CHECKED);
 }
 
 void _lv_demo_music_pause(void)
@@ -383,7 +439,7 @@ void _lv_demo_music_playback_stopped(void)
     lv_obj_invalidate(spectrum_obj);
     lv_image_set_scale(album_image_obj, LV_SCALE_NONE);
     if(sec_counter_timer) lv_timer_pause(sec_counter_timer);
-    lv_obj_remove_state(play_obj, LV_STATE_CHECKED);
+    lv_obj_remove_state(clickables[CLICKABLE_PLAY], LV_STATE_CHECKED);
 }
 
 /**********************
@@ -547,37 +603,35 @@ static lv_obj_t * create_ctrl_box(lv_obj_t * parent)
     LV_IMAGE_DECLARE(img_lv_demo_music_btn_play);
     LV_IMAGE_DECLARE(img_lv_demo_music_btn_pause);
 
-    lv_obj_t * icon;
+    clickables[CLICKABLE_PREVIOUS] = lv_image_create(cont);
+    lv_image_set_src(clickables[CLICKABLE_PREVIOUS], &img_lv_demo_music_btn_prev);
+    lv_obj_set_grid_cell(clickables[CLICKABLE_PREVIOUS], LV_GRID_ALIGN_CENTER, 2, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+    lv_obj_add_event_cb(clickables[CLICKABLE_PREVIOUS], prev_click_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_flag(clickables[CLICKABLE_PREVIOUS], LV_OBJ_FLAG_CLICKABLE);
 
-    icon = lv_image_create(cont);
-    lv_image_set_src(icon, &img_lv_demo_music_btn_prev);
-    lv_obj_set_grid_cell(icon, LV_GRID_ALIGN_CENTER, 2, 1, LV_GRID_ALIGN_CENTER, 0, 1);
-    lv_obj_add_event_cb(icon, prev_click_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_flag(icon, LV_OBJ_FLAG_CLICKABLE);
+    clickables[CLICKABLE_PLAY] = lv_imagebutton_create(cont);
+    lv_imagebutton_set_src(clickables[CLICKABLE_PLAY], LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_lv_demo_music_btn_play, NULL);
+    lv_imagebutton_set_src(clickables[CLICKABLE_PLAY], LV_IMAGEBUTTON_STATE_CHECKED_RELEASED, NULL, &img_lv_demo_music_btn_pause, NULL);
+    lv_obj_add_flag(clickables[CLICKABLE_PLAY], LV_OBJ_FLAG_CHECKABLE);
+    lv_obj_set_grid_cell(clickables[CLICKABLE_PLAY], LV_GRID_ALIGN_CENTER, 3, 1, LV_GRID_ALIGN_CENTER, 0, 1);
 
-    play_obj = lv_imagebutton_create(cont);
-    lv_imagebutton_set_src(play_obj, LV_IMAGEBUTTON_STATE_RELEASED, NULL, &img_lv_demo_music_btn_play, NULL);
-    lv_imagebutton_set_src(play_obj, LV_IMAGEBUTTON_STATE_CHECKED_RELEASED, NULL, &img_lv_demo_music_btn_pause, NULL);
-    lv_obj_add_flag(play_obj, LV_OBJ_FLAG_CHECKABLE);
-    lv_obj_set_grid_cell(play_obj, LV_GRID_ALIGN_CENTER, 3, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+    lv_obj_add_event_cb(clickables[CLICKABLE_PLAY], play_event_click_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_flag(clickables[CLICKABLE_PLAY], LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_width(clickables[CLICKABLE_PLAY], img_lv_demo_music_btn_play.header.w);
 
-    lv_obj_add_event_cb(play_obj, play_event_click_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_flag(play_obj, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_width(play_obj, img_lv_demo_music_btn_play.header.w);
+    clickables[CLICKABLE_NEXT] = lv_image_create(cont);
+    lv_image_set_src(clickables[CLICKABLE_NEXT], &img_lv_demo_music_btn_next);
+    lv_obj_set_grid_cell(clickables[CLICKABLE_NEXT], LV_GRID_ALIGN_CENTER, 4, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+    lv_obj_add_event_cb(clickables[CLICKABLE_NEXT], next_click_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_flag(clickables[CLICKABLE_NEXT], LV_OBJ_FLAG_CLICKABLE);
 
-    icon = lv_image_create(cont);
-    lv_image_set_src(icon, &img_lv_demo_music_btn_next);
-    lv_obj_set_grid_cell(icon, LV_GRID_ALIGN_CENTER, 4, 1, LV_GRID_ALIGN_CENTER, 0, 1);
-    lv_obj_add_event_cb(icon, next_click_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_flag(icon, LV_OBJ_FLAG_CLICKABLE);
-
-    icon = lv_button_create(cont);
-    volume_label = lv_label_create(icon);
+    clickables[CLICKABLE_VOLUME] = lv_button_create(cont);
+    volume_label = lv_label_create(clickables[CLICKABLE_VOLUME]);
     lv_label_set_text(volume_label, "V");
     lv_obj_center(volume_label);
-    lv_obj_set_grid_cell(icon, LV_GRID_ALIGN_CENTER, 5, 1, LV_GRID_ALIGN_CENTER, 0, 1);
-    lv_obj_add_event_cb(icon, volume_button_clicked_cb, LV_EVENT_CLICKED, 0);
-    lv_obj_add_flag(icon, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_grid_cell(clickables[CLICKABLE_VOLUME], LV_GRID_ALIGN_CENTER, 5, 1, LV_GRID_ALIGN_CENTER, 0, 1);
+    lv_obj_add_event_cb(clickables[CLICKABLE_VOLUME], volume_button_clicked_cb, LV_EVENT_CLICKED, 0);
+    lv_obj_add_flag(clickables[CLICKABLE_VOLUME], LV_OBJ_FLAG_CLICKABLE);
 
     LV_IMAGE_DECLARE(img_lv_demo_music_slider_knob);
     slider_obj = lv_slider_create(cont);
@@ -1022,6 +1076,7 @@ static void volume_button_clicked_cb(lv_event_t * e)
     LV_UNUSED(e);
     lv_obj_t* volume_msgbox = lv_msgbox_create(lv_screen_active());
     lv_msgbox_add_title(volume_msgbox, "Set volume");
+    lv_msgbox_add_close_button(volume_msgbox);
     lv_obj_t* cont = lv_msgbox_get_content(volume_msgbox);
     lv_obj_t* slider = lv_slider_create(cont);
     lv_slider_set_range(slider, 0, 100);

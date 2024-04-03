@@ -26,6 +26,7 @@
 
 #include "lv_port_disp.h"
 #include "lv_port.h"
+#include "display.h"
 
 #define I2C_TOUCH_ENABLE         1
 
@@ -62,6 +63,18 @@ static ARM_DRIVER_CDC200 *CDCdrv = &Driver_CDC200;
 void hw_disp_cb(uint32_t event)
 {
     (void)event;
+}
+
+void lv_port_disp_off()
+{
+    Get_Display_Panel()->ops->Stop();
+    printf("display off\n");
+}
+
+void lv_port_disp_on()
+{
+    Get_Display_Panel()->ops->Start();
+    printf("display on\n");
 }
 
 /**
@@ -166,6 +179,7 @@ static void lv_touch_get(lv_indev_t * indev, lv_indev_data_t * data)
         data->point.y = status.coordinates[0].y;
         last.x = status.coordinates[0].x;
         last.y = status.coordinates[0].y;
+
     }
     else
     {
