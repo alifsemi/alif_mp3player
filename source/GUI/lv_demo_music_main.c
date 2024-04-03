@@ -1021,6 +1021,7 @@ static void volume_button_clicked_cb(lv_event_t * e)
 {
     LV_UNUSED(e);
     lv_obj_t* volume_msgbox = lv_msgbox_create(lv_screen_active());
+    lv_msgbox_add_title(volume_msgbox, "Set volume");
     lv_obj_t* cont = lv_msgbox_get_content(volume_msgbox);
     lv_obj_t* slider = lv_slider_create(cont);
     lv_slider_set_range(slider, 0, 100);
