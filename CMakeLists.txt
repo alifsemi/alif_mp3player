@@ -113,7 +113,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     # GUI
     ${SRC_PATH}/GUI/lv_demo_music_main.c
     ${SRC_PATH}/GUI/lv_demo_music.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/lv_demo_music_list.c
+    ${SRC_PATH}/GUI/lv_demo_music_list.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_cover_1_large.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_cover_2_large.c
     ${CMAKE_CURRENT_SOURCE_DIR}/libs/lvgl/demos/music/assets/img_lv_demo_music_wave_top_large.c
