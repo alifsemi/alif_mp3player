@@ -31,8 +31,12 @@
 #define DEG_STEP            (180/BAR_CNT)
 #define BAND_CNT            4
 #define BAR_PER_BAND_CNT    (BAR_CNT / BAND_CNT)
-#define SCREEN_OFF_INACTIVITY_TIME_MS 20000
+#define SCREEN_OFF_INACTIVITY_TIME_MS 120000
+#define SCREEN_DIM_INACTIVITY_TIME_MS 20000
 #define SCREEN_INACTIVITY_MONITOR_INTERVAL_MS 100
+#define SCREEN_STATE_ON 0
+#define SCREEN_STATE_DIMMED 1
+#define SCREEN_STATE_OFF 2
 
 /**********************
  *      TYPEDEFS
@@ -97,7 +101,7 @@ static uint32_t spectrum_len;
 static const uint16_t rnd_array[30] = {994, 285, 553, 11, 792, 707, 966, 641, 852, 827, 44, 352, 146, 581, 490, 80, 729, 58, 695, 940, 724, 561, 124, 653, 27, 292, 557, 506, 382, 199};
 static int volume = 100;
 static lv_obj_t* volume_label;
-static bool screen_on = true;
+static uint8_t screen_state = SCREEN_STATE_ON;
 
 #define CLICKABLE_PLAY 0
 #define CLICKABLE_PREVIOUS 1
@@ -162,23 +166,32 @@ void _lv_demo_audio_stopped(uint32_t error)
 
 static void disp_screen_off()
 {
-    if(screen_on) {
+    if(screen_state != SCREEN_STATE_OFF) {
         for(unsigned int i = 0; i < sizeof(clickables) / sizeof(clickables[0]); i++) {
             lv_obj_update_flag(clickables[i], LV_OBJ_FLAG_CLICKABLE, false);
         }
         lv_port_disp_off();
-        screen_on = false;
+        screen_state = SCREEN_STATE_OFF;
+    }
+}
+
+static void disp_screen_dim()
+{
+    if(screen_state != SCREEN_STATE_DIMMED)
+    {
+        lv_port_disp_dim();
+        screen_state = SCREEN_STATE_DIMMED;
     }
 }
 
 static void disp_screen_on()
 {
-    if(!screen_on) {
+    if(screen_state != SCREEN_STATE_ON) {
         for(unsigned int i = 0; i < sizeof(clickables) / sizeof(clickables[0]); i++) {
             lv_obj_update_flag(clickables[i], LV_OBJ_FLAG_CLICKABLE, true);
         }
         lv_port_disp_on();
-        screen_on = true;
+        screen_state = SCREEN_STATE_ON;
     }
 }
 
@@ -187,13 +200,14 @@ static void inactivity_handler(lv_timer_t* t)
     LV_UNUSED(t);
     // get inactivity time in ms from all displays
     uint32_t inactivity_time = lv_disp_get_inactive_time(0);
-    if(inactivity_time > SCREEN_OFF_INACTIVITY_TIME_MS)
-    {
-        disp_screen_off();
-    }
-    else
-    {
+    if(inactivity_time < SCREEN_DIM_INACTIVITY_TIME_MS) {
         disp_screen_on();
+    }
+    else if(inactivity_time < SCREEN_OFF_INACTIVITY_TIME_MS) {
+        disp_screen_dim();
+    }
+    else {
+        disp_screen_off();
     }
 }
 

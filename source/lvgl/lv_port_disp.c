@@ -23,10 +23,12 @@
 
 /* CDC200 driver */
 #include "Driver_CDC200.h"
+#include "Driver_UTIMER.h"
 
 #include "lv_port_disp.h"
 #include "lv_port.h"
 #include "display.h"
+#include "pinconf.h"
 
 #define I2C_TOUCH_ENABLE         1
 
@@ -54,6 +56,20 @@ static uint8_t lcd_image2[DIMAGE_Y][DIMAGE_X][PIXEL_BYTES] __attribute__((sectio
 extern ARM_DRIVER_CDC200 Driver_CDC200;
 static ARM_DRIVER_CDC200 *CDCdrv = &Driver_CDC200;
 
+// UTIMER for outputting pwm signal to backlight led
+#define UTIMER_COUNTER_VALUE 400000
+
+// Target pwr on period when dimmed
+#define UTIMER_DIMMED_TARGET_VALUE 10000
+
+// Steps to change the on period towards UTIMER_DIMMED_TARGET_VALUE
+#define UTIMER_DIMMING_STEP 1000
+
+extern ARM_DRIVER_UTIMER DRIVER_UTIMER0;
+static ARM_DRIVER_UTIMER* utimer = &DRIVER_UTIMER0;
+static uint32_t target_cmp_value = UTIMER_COUNTER_VALUE;
+static uint32_t current_cmp_value = UTIMER_COUNTER_VALUE;
+
 /**
   \fn          void hw_disp_cb(uint32_t event)
   \brief       Display callback
@@ -65,16 +81,35 @@ void hw_disp_cb(uint32_t event)
     (void)event;
 }
 
+void utimer_cb(uint8_t event)
+{
+    if(event != ARM_UTIMER_EVENT_OVER_FLOW && event != ARM_UTIMER_EVENT_COMPARE_B) {
+        // shouldn't be getting any other callbacks so print them
+        printf("utimer cb: %" PRIu8 "\n", event);
+    }
+    if (event == ARM_UTIMER_EVENT_OVER_FLOW && current_cmp_value > target_cmp_value) {
+        current_cmp_value -= UTIMER_DIMMING_STEP;
+        utimer->SetCount(ARM_UTIMER_CHANNEL4, ARM_UTIMER_COMPARE_B_BUF1, current_cmp_value);
+    }
+}
+
 void lv_port_disp_off()
 {
-    Get_Display_Panel()->ops->Stop();
-    printf("display off\n");
+    utimer->Stop(ARM_UTIMER_CHANNEL4, true);
+}
+
+void lv_port_disp_dim()
+{
+    target_cmp_value = UTIMER_DIMMED_TARGET_VALUE;
 }
 
 void lv_port_disp_on()
 {
-    Get_Display_Panel()->ops->Start();
-    printf("display on\n");
+    // switch to full immediately (callback needs implementation too if changed to gradual poweron)
+    current_cmp_value = UTIMER_COUNTER_VALUE;
+    target_cmp_value = UTIMER_COUNTER_VALUE;
+    utimer->SetCount(ARM_UTIMER_CHANNEL4, ARM_UTIMER_COMPARE_B_BUF1, UTIMER_COUNTER_VALUE);
+    utimer->Start(ARM_UTIMER_CHANNEL4);
 }
 
 /**
@@ -85,66 +120,62 @@ void lv_port_disp_on()
   */
 static uint32_t hw_disp_init(void)
 {
-    int ret = 0;
+    int32_t ret = 0;
+    // set display backlight to utimer to drive pwm signal towards the display
+	pinconf_set(PORT_(BOARD_LCD_BACKLIGHT_GPIO_PORT), BOARD_LCD_BACKLIGHT_PIN_NO, PINMUX_ALTERNATE_FUNCTION_4, PADCTRL_OUTPUT_DRIVE_STRENGTH_4MA);
    
-    /* Initialize CDC200 controller */
     ret = CDCdrv->Initialize(hw_disp_cb);
-    if(ret != ARM_DRIVER_OK)
-    {
-        /* Error in CDC200 initialize */
-        printf("\r\n Error: CDC200 initialization failed.\r\n");
+    if(ret != ARM_DRIVER_OK) {
         return 1;
     }
 
-    /* Power ON CDC200 controller */
     ret = CDCdrv->PowerControl(ARM_POWER_FULL);
-    if(ret != ARM_DRIVER_OK)
-    {
-        /* Error in CDC200 Power ON */
-        printf("\r\n Error: CDC200 Power ON failed.\r\n");
-        goto error_CDC200_uninitialize;
-    }
-
-    /* Configure CDC200 controller */
-    ret = CDCdrv->Control(CDC200_CONFIGURE_DISPLAY, (uint32_t)lcd_image);
-    if(ret != ARM_DRIVER_OK)
-    {
-        /* Error in CDC200 control configuration */
-        printf("\r\n Error: CDC200 control configuration failed.\r\n");
-        goto error_CDC200_poweroff;
-    }
-
-    /* Start CDC200 controller */
-    ret = CDCdrv->Start();
-    if(ret != ARM_DRIVER_OK)
-    {
-        /* Error in CDC200 start */
-        printf("\r\n Error: CDC200 start failed.\r\n");
-    }
-
-    return 0;
-
-error_CDC200_poweroff:
-    /* Received error Power OFF CDC200 driver */
-    ret = CDCdrv->PowerControl(ARM_POWER_OFF);
-    if (ret != ARM_DRIVER_OK)
-    {
-        /* Error in CDC200 poweroff. */
-        printf("ERROR: Could not power off CDC200\n");
-        return 1;
-    }
-
-error_CDC200_uninitialize:
-    /* Received error Un-initialize CDC200 */
-    ret = CDCdrv->Uninitialize();
-    if (ret != ARM_DRIVER_OK)
-    {
-        /* Error in CDC200 uninitialize. */
-        printf("ERROR: Could not unintialize CDC200\n");
+    if(ret != ARM_DRIVER_OK) {
         return 2;
     }
 
-    return 3;
+    ret = CDCdrv->Control(CDC200_CONFIGURE_DISPLAY, (uint32_t)lcd_image);
+    if(ret != ARM_DRIVER_OK) {
+        return 3;
+    }
+
+    ret = CDCdrv->Start();
+    if(ret != ARM_DRIVER_OK) {
+        return 4;
+    }
+
+    ret = utimer->Initialize(ARM_UTIMER_CHANNEL4, utimer_cb);
+    if(ret != ARM_DRIVER_OK) {
+        return 5;
+    }
+
+    ret = utimer->PowerControl(ARM_UTIMER_CHANNEL4, ARM_POWER_FULL);
+    if(ret != ARM_DRIVER_OK) {
+        return 6;
+    }
+    ret = utimer->ConfigCounter(ARM_UTIMER_CHANNEL4, ARM_UTIMER_MODE_COMPARING, ARM_UTIMER_COUNTER_UP);
+    if(ret != ARM_DRIVER_OK) {
+        return 7;
+    }
+    ret = utimer->SetCount(ARM_UTIMER_CHANNEL4, ARM_UTIMER_CNTR, 0);
+    if(ret != ARM_DRIVER_OK) {
+        return 8;
+    }
+    ret = utimer->SetCount(ARM_UTIMER_CHANNEL4, ARM_UTIMER_CNTR_PTR, UTIMER_COUNTER_VALUE);
+    if(ret != ARM_DRIVER_OK) {
+        return 9;
+    }
+    // set utimer comparator value to same as counter, max on time = brightest display
+    ret = utimer->SetCount(ARM_UTIMER_CHANNEL4, ARM_UTIMER_COMPARE_B_BUF1, UTIMER_COUNTER_VALUE);
+    if(ret != ARM_DRIVER_OK) {
+        return 10;
+    }
+    ret = utimer->Start(ARM_UTIMER_CHANNEL4);
+    if(ret != ARM_DRIVER_OK) {
+        return 11;
+    }
+
+    return 0;
 }
 
 #if(I2C_TOUCH_ENABLE == 1)
@@ -201,36 +232,17 @@ static uint32_t hw_touch_init(void)
 {
     int ret = 0;
 
-    /* Initialize GT911 touch screen */
     ret = Drv_Touchscreen->Initialize();
-    if(ret != ARM_DRIVER_OK)
-    {
-        /* Error in GT911 touch screen initialize */
-        printf("\r\n Error: GT911 touch screen initialization failed.\r\n");
-        return ret;
+    if(ret != ARM_DRIVER_OK) {
+        return 12;
     }
 
-    /* Power ON GT911 touch screen */
     ret = Drv_Touchscreen->PowerControl(ARM_POWER_FULL);
-    if(ret != ARM_DRIVER_OK)
-    {
-        /* Error in GT911 touch screen power up */
-        printf("\r\n Error: GT911 touch screen Power Up failed.\r\n");
-        goto error_GT911_uninitialize;
+    if(ret != ARM_DRIVER_OK) {
+        return 13;
     }
 
     return 0;
-
-error_GT911_uninitialize:
-    /* Received error Un-initialize Touch screen driver */
-    ret = Drv_Touchscreen->Uninitialize();
-    if (ret != ARM_DRIVER_OK)
-    {
-        /* Error in GT911 Touch screen uninitialize. */
-        printf("ERROR: Could not unintialize touch screen\n");
-        return 7;
-    }
-    return 99;
 }
 #endif
 

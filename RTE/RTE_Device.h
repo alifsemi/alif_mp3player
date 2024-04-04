@@ -3690,14 +3690,14 @@
 //    <1=> ENABLED
 // <i> Defines Driver A state for UT channel 4.
 // <i> Default: DISABLED
-#define RTE_UTIMER_CHANNEL4_DRIVER_A                1
+#define RTE_UTIMER_CHANNEL4_DRIVER_A                0
 
 // <o> CHANNEL4 DRIVER B
 //    <0=> DISABLED
 //    <1=> ENABLED
 // <i> Defines Driver B state for UT channel 4.
 // <i> Default: DISABLED
-#define RTE_UTIMER_CHANNEL4_DRIVER_B                0
+#define RTE_UTIMER_CHANNEL4_DRIVER_B                1
 
 // <o> CHANNEL4 DRIVER A START STATE
 //    <0=> LOW
@@ -3736,7 +3736,7 @@
 //    <1=> HIGH
 // <i> Defines Driver B start state for UT channel 4.
 // <i> Default: LOW
-#define RTE_UTIMER_CHANNEL4_DRV_B_START_STATE       0
+#define RTE_UTIMER_CHANNEL4_DRV_B_START_STATE       1
 
 // <o> CHANNEL4 DRIVER B STOP STATE
 //    <0=> LOW
@@ -3752,7 +3752,7 @@
 //    <3=> TOGGLE
 // <i> Defines Driver B state at compare match for UT channel 4.
 // <i> Default: NO CHANGE
-#define RTE_UTIMER_CHANNEL4_DRV_B_OP_AT_MATCH_COUNT  0
+#define RTE_UTIMER_CHANNEL4_DRV_B_OP_AT_MATCH_COUNT  1
 
 // <o> CHANNEL4 DRIVER B AT CYCLE END
 //    <0=> NO CHANGE
@@ -3761,7 +3761,7 @@
 //    <3=> TOGGLE
 // <i> Defines Driver B state at cycle end for UT channel 4.
 // <i> Default: NO CHANGE
-#define RTE_UTIMER_CHANNEL4_DRV_B_OP_AT_CYCLE_END    0
+#define RTE_UTIMER_CHANNEL4_DRV_B_OP_AT_CYCLE_END    2
 
 // <o> CHANNEL4 BUFFER TRANSFER AT CREST
 //    <0=> DISABLE
@@ -3782,7 +3782,7 @@
 //    <1=> DOUBLE BUFFER
 // <i> Defines buffer type for UT channel 4.
 // <i> Default: DOUBLE BUFFER
-#define RTE_UTIMER_CHANNEL4_BUFFERING_TYPE          1
+#define RTE_UTIMER_CHANNEL4_BUFFERING_TYPE          0
 
 // <o> CHANNEL4 BUFFER OPERATION
 //    <0=> DISABLE
@@ -3805,7 +3805,7 @@
 //    <2=> DOUBLE BUFFER
 // <i> Defines buffer operation for UT channel 4 capture mode.
 // <i> Default: NO BUFFER
-#define RTE_UTIMER_CHANNEL4_BUFFERING_TYPE_B        2
+#define RTE_UTIMER_CHANNEL4_BUFFERING_TYPE_B        1
 
 // <o> CHANNEL4 CAPTURE A IRQ priority <0-255>
 // <i> Defines Interrupt priority for channel 4 capture A.

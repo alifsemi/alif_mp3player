@@ -45,6 +45,7 @@ target_sources(ensemblecmsis PRIVATE
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/cdc.c
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/i2c.c
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/i2s.c
+    ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/utimer.c
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/mhu_driver.c
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/mhu_receiver.c
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/mhu_sender.c
@@ -54,6 +55,7 @@ target_sources(ensemblecmsis PRIVATE
     ${ALIF_DRIVER_DIR}/Source/Driver_I2S.c
     ${ALIF_DRIVER_DIR}/Source/DPHY_init.c
     ${ALIF_DRIVER_DIR}/Source/Driver_I2C.c
+    ${ALIF_DRIVER_DIR}/Source/Driver_UTIMER.c
     ${ALIF_COMPONENTS_DIR}/Source/GT911_touch_driver.c
     ${ALIF_COMPONENTS_DIR}/Source/ILI9806E_LCD_panel.c
     ${CMSIS_DIR}/se_services/source/services_host_clocks.c
