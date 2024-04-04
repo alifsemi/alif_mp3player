@@ -650,7 +650,8 @@ static lv_obj_t * create_ctrl_box(lv_obj_t * parent)
     LV_IMAGE_DECLARE(img_lv_demo_music_slider_knob);
     slider_obj = lv_slider_create(cont);
     lv_obj_set_style_anim_duration(slider_obj, 100, 0);
-    lv_obj_add_flag(slider_obj, LV_OBJ_FLAG_CLICKABLE); /*No input from the slider*/
+    lv_obj_remove_flag(slider_obj, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_remove_flag(slider_obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_slider_set_range(slider_obj, 0, _lv_demo_music_get_track_length(track_id));
     lv_obj_set_height(slider_obj, 6);
     lv_obj_set_grid_cell(slider_obj, LV_GRID_ALIGN_STRETCH, 1, 4, LV_GRID_ALIGN_CENTER, 1, 1);
