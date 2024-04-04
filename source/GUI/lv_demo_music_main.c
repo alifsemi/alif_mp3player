@@ -71,6 +71,8 @@ static void album_fade_anim_cb(void * var, int32_t v);
 static int32_t get_cos(int32_t deg, int32_t a);
 static int32_t get_sin(int32_t deg, int32_t a);
 
+static void change_volume(uint8_t new_volume);
+
 /**********************
  *  STATIC VARIABLES
  **********************/
@@ -99,7 +101,7 @@ static int32_t start_anim_values[40];
 static const uint16_t (* spectrum)[4];
 static uint32_t spectrum_len;
 static const uint16_t rnd_array[30] = {994, 285, 553, 11, 792, 707, 966, 641, 852, 827, 44, 352, 146, 581, 490, 80, 729, 58, 695, 940, 724, 561, 124, 653, 27, 292, 557, 506, 382, 199};
-static int volume = 100;
+static int volume;
 static lv_obj_t* volume_label;
 static uint8_t screen_state = SCREEN_STATE_ON;
 
@@ -107,6 +109,8 @@ static uint8_t screen_state = SCREEN_STATE_ON;
 #define CLICKABLE_PREVIOUS 1
 #define CLICKABLE_NEXT 2
 #define CLICKABLE_VOLUME 3
+
+#define STARTING_VOLUME 50
 
 static lv_obj_t* clickables[4];
 
@@ -382,7 +386,7 @@ lv_obj_t * _lv_demo_music_main_create(lv_obj_t * parent)
     lv_anim_start(&a);
 
     lv_obj_update_layout(main_cont);
-
+    change_volume(STARTING_VOLUME);
     create_inactivity_monitor();
 
     return main_cont;
@@ -1068,12 +1072,9 @@ static void album_fade_anim_cb(void * var, int32_t v)
     lv_obj_set_style_image_opa(var, v, 0);
 }
 
-static void volume_changed_cb(lv_event_t* e)
+static void change_volume(uint8_t new_volume)
 {
-    lv_obj_t* slider = lv_event_get_target(e);
-    volume = lv_slider_get_value(slider);
-    lv_obj_t* msgbox = lv_event_get_user_data(e);
-    lv_msgbox_close(msgbox);
+    volume = new_volume;
     audio_set_volume(volume);
     if(volume == 0) {
         lv_label_set_text(volume_label, "-");
@@ -1084,6 +1085,15 @@ static void volume_changed_cb(lv_event_t* e)
     else {
         lv_label_set_text(volume_label, "V");
     }
+}
+
+static void volume_changed_cb(lv_event_t* e)
+{
+    lv_obj_t* slider = lv_event_get_target(e);
+    uint8_t new_volume = (uint8_t)lv_slider_get_value(slider);
+    lv_obj_t* msgbox = lv_event_get_user_data(e);
+    lv_msgbox_close(msgbox);
+    change_volume(new_volume);
 }
 
 static void volume_button_clicked_cb(lv_event_t * e)
