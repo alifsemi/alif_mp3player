@@ -1,12 +1,3 @@
-[submodule "libs/CMSIS-alif-dfp"]
-	path = libs/CMSIS-alif-dfp
-	url = git@github.com:alifsemi/b0-cmsis-dfp_DEV.git
-[submodule "libs/common_app_utils"]
-	path = libs/common_app_utils
-	url = git@github.com:alifsemi/common_app_utils_DEV.git
-[submodule "libs/boardlib"]
-	path = libs/boardlib
-	url = git@github.com:alifsemi/boardlib_DEV.git
 [submodule "libs/lvgl"]
 	path = libs/lvgl
 	url = git@github.com:lvgl/lvgl.git
@@ -19,6 +10,3 @@
 [submodule "libs/CMSIS-dsp"]
 	path = libs/CMSIS-dsp
 	url = git@github.com:ARM-software/CMSIS-DSP.git
-[submodule "libs/minimp3"]
-	path = libs/minimp3
-	url = git@github.com:alifsemi/minimp3_DEV.git
