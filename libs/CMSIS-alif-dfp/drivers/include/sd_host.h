@@ -115,6 +115,8 @@ typedef struct _SDMMC_Type {                              /*!< (SDMMC Structure 
 #define SDMMC                                   ((SDMMC_Type *) SDMMC_BASE)
 #define SDMMC_HC_VERSION_REG                    (SDMMC_BASE + 0xFEU)
 #define SDMMC_HC_VERSION_REG_Msk                0xFFFFU
+#define SDMMC_IRQ_NUM                           SDMMC_IRQ_IRQn
+#define SDMMC_WAKEUP_IRQ_NUM                    SDMMC_WAKEUP_IRQ_IRQn
 
 /**
  * @brief  Host controller driver status enum definition
@@ -152,7 +154,7 @@ typedef struct _adma2_desc_t{
 
 /* Software Reset Register */
 #define SDMMC_SW_RST_ALL_Pos                    0U
-#define SDMMC_SW_RST_ALL_Msk                    (0U << SDMMC_SW_RST_ALL_Pos)
+#define SDMMC_SW_RST_ALL_Msk                    (1U << SDMMC_SW_RST_ALL_Pos)
 #define SDMMC_SW_RST_CMD_Pos                    1U
 #define SDMMC_SW_RST_CMD_Msk                    (1U << SDMMC_SW_RST_CMD_Pos)
 #define SDMMC_SW_RST_DAT_Pos                    2U
@@ -300,14 +302,12 @@ typedef struct _adma2_desc_t{
 #define SDMMC_CLK_1_5MHz_DIV                    0x40U
 #define SDMMC_CLK_3MHz_DIV                      0x20U
 #define SDMMC_CLK_6MHz_DIV                      0x10U
-#define SDMMC_CLK_12_5MHz_DIV                   0x8U
-#define SDMMC_CLK_25MHz_DIV                     0x4U
-#define SDMMC_CLK_50MHz_DIV                     0x2U
-#define SDMMC_CLK_100MHz_DIV                    0x1U
+#define SDMMC_CLK_12_5MHz_DIV                   0x4U
+#define SDMMC_CLK_25MHz_DIV                     0x2U
+#define SDMMC_CLK_50MHz_DIV                     0x1U
+#define SDMMC_CLK_100MHz_DIV                    0x0U
 #define SDMMC_INIT_FREQ                         SDMMC_CLK_400KHz_DIV
-#define SDMMC_OP_FREQ_SEL                       SDMMC_CLK_25MHz_DIV
 #define SDMMC_INIT_CLK_DIVSOR_Msk               (SDMMC_INIT_FREQ)
-#define SDMMC_OP_CLK_DIVSOR_Msk                 (SDMMC_OP_FREQ_SEL << SDMMC_FREQ_SEL_Pos)
 
 /* Host Capabilities */
 #define SDMMC_HOST_SD_CAP_VOLT_3V3_Msk          0x01000000U /*!< 3.3V support */
@@ -335,6 +335,11 @@ typedef struct _adma2_desc_t{
 
 /* DMA */
 #define SDMMC_HC_DMA_ADMA2_32_Msk               0x00000010U /**< ADMA2 Mode - 32 bit */
+
+/* Wakeup Control Register Mask */
+#define SDMMC_WKUP_CARD_IRQ_Msk                 0x00000001U /*!< Card Interrupt           */
+#define SDMMC_WKUP_CARD_INSRT_Msk               0x00000002U /*!< Card Insertion           */
+#define SDMMC_WKUP_CARD_REM_Msk                 0x00000004U /*!< Card Removal             */
 
 /* Normal IRQs Mask */
 #define SDMMC_INTR_CC_Msk                       0x00000001U /*!< Command Complete         */

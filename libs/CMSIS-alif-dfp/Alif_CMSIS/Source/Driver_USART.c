@@ -13,6 +13,7 @@
 #include "Driver_USART_Private.h"
 #include "uart.h"
 #include "sys_ctrl_uart.h"
+#include "system_utils.h"
 
 #if !(RTE_UART0 || RTE_UART1 || RTE_UART2 || RTE_UART3 || RTE_UART4 || RTE_UART5 || RTE_UART6 || RTE_UART7)
 #error "UART is not enabled in the RTE_Device.h"
@@ -368,6 +369,9 @@ static int32_t ARM_USART_PowerControl (ARM_POWER_STATE   state,
             /* Clear Any Pending IRQ*/
             NVIC_ClearPendingIRQ (uart->irq_num);
 
+            /* wait for data to be transmitted */
+            while(READ_BIT(uart->regs->UART_LSR, BIT(6)) != UART_LSR_TRANSMITTER_EMPTY);
+
             /* uart EXPMST0 configuration,
              * Disable the selected UART instance. */
             if (uart->instance == UART_INSTANCE_LP) /* LPUART */
@@ -414,7 +418,7 @@ static int32_t ARM_USART_PowerControl (ARM_POWER_STATE   state,
                     select_uart_clock_hfosc_clk(uart->instance);
 
                     /* update peripheral clock frequency. */
-                    uart->clk = (uint32_t)HFOSC_CLK;
+                    uart->clk = GetSystemHFOSClock();
                 }
 
                 if (uart->clk_source == UART_CLK_SOURCE_SYST_PCLK)
@@ -910,9 +914,43 @@ static int32_t ARM_USART_Receive (void             *data,
         /* Blocking(Polling) mode enable? */
         if(uart->blocking_mode)
         {
+            UART_TRANSFER *transfer = &(uart->transfer);
+
             /* Blocking call(Polling Method),
              *  this will block till uart receives all the data. */
-            uart_receive_blocking(uart->regs, &uart->transfer);
+            uart_receive_blocking(uart->regs, transfer);
+
+            /* check for transfer error. */
+            if(transfer->status & UART_TRANSFER_STATUS_ERROR)
+            {
+                /* there can be multiple RX line status,
+                 * break character implicitly generates a framing error / parity error.
+                 */
+
+                /* update uart transfer status. */
+                if(transfer->status & UART_TRANSFER_STATUS_ERROR_RX_BREAK)
+                {
+                    uart->status.rx_break = 1;
+                }
+
+                if(transfer->status & UART_TRANSFER_STATUS_ERROR_RX_FRAMING)
+                {
+                    uart->status.rx_framing_error = 1;
+                }
+
+                if(transfer->status & UART_TRANSFER_STATUS_ERROR_RX_PARITY)
+                {
+                    uart->status.rx_parity_error = 1;
+                }
+
+                if(transfer->status & UART_TRANSFER_STATUS_ERROR_RX_OVERRUN)
+                {
+                    uart->status.rx_overflow = 1;
+                }
+
+                /* clear transfer status */
+                transfer->status = UART_TRANSFER_STATUS_NONE;
+            }
 
             /* clear RX busy flag */
             uart->status.rx_busy   = UART_STATUS_FREE;
@@ -1366,9 +1404,6 @@ static int32_t ARM_USART_Control (uint32_t         control,
  */
 static ARM_USART_STATUS ARM_USART_GetStatus (UART_RESOURCES *uart)
 {
-    /* -TX/RX busy flag is implemented.
-     * -TX/RX errors are not implemented yet.
-     */
     return uart->status;
 }
 
@@ -1418,10 +1453,57 @@ static ARM_USART_MODEM_STATUS ARM_USART_GetModemStatus (UART_RESOURCES *uart)
 static void UART_IRQHandler(UART_RESOURCES *uart)
 {
     UART_TRANSFER *transfer = &(uart->transfer);
+    uint32_t cb_event = 0U;
 
     uart_irq_handler(uart->regs, transfer);
 
-    if(transfer->status == UART_TRANSFER_STATUS_SEND_COMPLETE)
+    /* check for transfer error. */
+    if(transfer->status & UART_TRANSFER_STATUS_ERROR)
+    {
+        /* there can be multiple RX line status,
+         * break character implicitly generates framing error / parity error.
+         */
+
+        /* update uart transfer status and callback event. */
+        if(transfer->status & UART_TRANSFER_STATUS_ERROR_RX_BREAK)
+        {
+            uart->status.rx_break = 1;
+            cb_event |= ARM_USART_EVENT_RX_BREAK;
+        }
+
+        if(transfer->status & UART_TRANSFER_STATUS_ERROR_RX_FRAMING)
+        {
+            uart->status.rx_framing_error = 1;
+            cb_event |= ARM_USART_EVENT_RX_FRAMING_ERROR;
+        }
+
+        if(transfer->status & UART_TRANSFER_STATUS_ERROR_RX_PARITY)
+        {
+            uart->status.rx_parity_error = 1;
+            cb_event |= ARM_USART_EVENT_RX_PARITY_ERROR;
+        }
+
+        if(transfer->status & UART_TRANSFER_STATUS_ERROR_RX_OVERRUN)
+        {
+            uart->status.rx_overflow = 1;
+            cb_event |= ARM_USART_EVENT_RX_OVERFLOW;
+        }
+
+        /* clear transfer status */
+        transfer->status = UART_TRANSFER_STATUS_NONE;
+
+        /* in error case not clearing busy flag
+         * it is up to user to decide whether
+         * to wait for remaining bytes or call the abort rx.
+        */
+
+        /* mark event as error and call the user callback */
+        if(uart->cb_event)
+            uart->cb_event(cb_event);
+    }
+
+    /* check for transfer send complete. */
+    if(transfer->status & UART_TRANSFER_STATUS_SEND_COMPLETE)
     {
         /* clear transfer status */
         transfer->status = UART_TRANSFER_STATUS_NONE;
@@ -1434,7 +1516,8 @@ static void UART_IRQHandler(UART_RESOURCES *uart)
             uart->cb_event(ARM_USART_EVENT_SEND_COMPLETE);
     }
 
-    if(transfer->status == UART_TRANSFER_STATUS_RECEIVE_COMPLETE)
+    /* check for transfer receive complete. */
+    if(transfer->status & UART_TRANSFER_STATUS_RECEIVE_COMPLETE)
     {
         /* clear transfer status */
         transfer->status = UART_TRANSFER_STATUS_NONE;
@@ -1447,7 +1530,8 @@ static void UART_IRQHandler(UART_RESOURCES *uart)
             uart->cb_event(ARM_USART_EVENT_RECEIVE_COMPLETE);
     }
 
-    if(transfer->status == UART_TRANSFER_STATUS_RX_TIMEOUT)
+    /* check for transfer receive timeout. */
+    if(transfer->status & UART_TRANSFER_STATUS_RX_TIMEOUT)
     {
         /* clear transfer status */
         transfer->status = UART_TRANSFER_STATUS_NONE;

@@ -26,8 +26,6 @@
   #include "M55_HP_map.h"
 #elif defined (M55_HE)
   #include "M55_HE_map.h"
-#elif defined (A32)
-  #include "global_map.h"
 #else
   #error device not specified!
 #endif

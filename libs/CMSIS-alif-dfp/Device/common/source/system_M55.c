@@ -53,8 +53,11 @@
   #elif defined (M55_HE)
     #include "partition_M55_HE.h"
   #endif
-    #include "tgu_M55.h"
-  #endif
+#endif
+
+#include "tcm_partition.h"
+#include "tgu_M55.h"
+
 
 #if defined (__MPU_PRESENT) && (__MPU_PRESENT == 1U)
   #include <mpu_M55.h>
@@ -66,10 +69,12 @@
  *----------------------------------------------------------------------------*/
 #define  MHZ            ( 1000000UL)
 
+#ifndef SYSTEM_CLOCK
 #if defined (M55_HP)
 #define  SYSTEM_CLOCK    (400U * MHZ)
 #elif defined (M55_HE)
 #define  SYSTEM_CLOCK    (160U * MHZ)
+#endif
 #endif
 
 /*----------------------------------------------------------------------------
@@ -124,6 +129,25 @@ void System_HandleSpuriousWakeup (void)
  * User may override and can have their own implementation.
  */
 }
+
+/* This hook is called automatically by the ARM C library after scatter loading */
+/* We add it to the preinit table for GCC */
+void _platform_pre_stackheap_init(void)
+{
+    /* Synchronise the caches for any copied code */
+    if (!(MEMSYSCTL->MSCR & MEMSYSCTL_MSCR_DCCLEAN_Msk))
+    {
+        SCB_CleanDCache();
+    }
+    SCB_InvalidateICache();
+
+    /* Enable the Counter module for busy loops */
+    sys_busy_loop_init();
+}
+
+#if !defined(__ARMCC_VERSION)
+void (*_do_platform_pre_stackheap_init)() __attribute__((section(".preinit_array"))) = _platform_pre_stackheap_init;
+#endif
 
 /*----------------------------------------------------------------------------
   System initialization function
@@ -208,12 +232,11 @@ void SystemInit (void)
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
   TZ_SAU_Setup();
   TGU_Setup();
+#else
+  setup_tcm_ns_partition();
 #endif
 
   SystemCoreClock = SYSTEM_CLOCK;
-
-  /* Enable the Counter module for busy loops */
-  sys_busy_loop_init();
 
   /* Add a feature to bypass the clock gating in the EXPMST0.
    *

@@ -117,6 +117,12 @@ typedef struct {                                           /*!< (@ 0x49033000) C
 /* CSI2 Parameters */
 #define CSI_IPI_FIFO_DEPTH                           1024
 #define CSI2_HOST_IPI_DWIDTH                         64
+#define CSI2_HSD_MIN                                 1
+#define CSI2_HSA_MIN                                 2
+#define CSI2_HBP_MIN                                 10
+#define CSI2_SHORT_PKT_BYTES                         4
+#define CSI2_LONG_PKT_BYTES                          6
+#define CSI2_BYTES_PER_HS_CLK                        1
 
 /* CSI N LANES register (CSI_N_LANES) bit[2:0] */
 #define CSI_N_LANES_Pos                              0U
@@ -1183,4 +1189,7 @@ void csi_set_ipi_sync_event_type(CSI_Type *csi, CSI_IPI_SYNC_EVENT sync_event);
 void csi_set_vertical_timing(CSI_Type *csi, uint16_t vsa_lines, uint16_t vbp_lines,
                                             uint16_t vfp_lines, uint16_t vactive_lines);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* CSI_H_ */

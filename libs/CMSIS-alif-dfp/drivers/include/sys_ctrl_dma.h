@@ -76,7 +76,6 @@ static inline void dma0_reset(void)
     CLKCTL_PER_MST->DMA_CTRL |= DMA_CTRL_SW_RST;
 }
 
-#if defined(M55_HE) || defined(M55_HP)
 static inline void dmalocal_enable_periph_clk(void)
 {
     M55LOCAL_CFG->CLK_ENA |= CLK_ENA_DMA_CKEN;
@@ -112,15 +111,14 @@ static inline void dmalocal_reset(void)
     M55LOCAL_CFG->DMA_CTRL |= DMA_CTRL_SW_RST;
 }
 
-static inline void dmalocal_set_glitch_filter(uint8_t glitch_filter)
-{
-    M55LOCAL_CFG->DMA_SEL |= (glitch_filter << DMA_SEL_FLT_ENA_Pos);
-}
-#endif
-
 static inline void dma0_set_glitch_filter(uint32_t glitch_filter)
 {
     CLKCTL_PER_MST->DMA_GLITCH_FLT = glitch_filter;
+}
+
+static inline void dmalocal_set_glitch_filter(uint8_t glitch_filter)
+{
+    M55LOCAL_CFG->DMA_SEL |= (glitch_filter << DMA_SEL_FLT_ENA_Pos);
 }
 
 static inline void lppdm_select_dma0(void)

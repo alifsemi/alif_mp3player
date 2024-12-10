@@ -37,12 +37,10 @@ message(STATUS "Using Alif Ensemble core ${ENSEMBLE_CORE}")
 
 if (${ENSEMBLE_CORE} STREQUAL "M55_HP")
     add_compile_definitions(
-        _RTE_
         M55_HP
     )
 elseif (${ENSEMBLE_CORE} STREQUAL "M55_HE")
     add_compile_definitions(
-        _RTE_
         M55_HE
     )
 else()
@@ -83,8 +81,21 @@ include(${LIBRARIES_DIR}/common_app_utils.cmake)
 set(ARM_2D_SRC_PATH ${LIBRARIES_DIR}/CMSIS-arm2d)
 include(${LIBRARIES_DIR}/cmsis-arm2d.cmake)
 
-# Include LVGL
+# Include DAVE driver
+include(${LIBRARIES_DIR}/alif_dave2d-driver.cmake)
+
+# Add LVGL config as library so that LVGL DAVE integration can read it
 set(LVGL_SRC_PATH ${LIBRARIES_DIR}/lvgl)
+add_library(lvgl_config_interface INTERFACE)
+target_include_directories(lvgl_config_interface INTERFACE
+    configs/lvgl
+    ${LVGL_SRC_PATH}
+)
+
+# Include LVGL DAVE integration
+include(${LIBRARIES_DIR}/alif_lvgl-dave2d.cmake)
+
+# Include LVGL
 include(${LIBRARIES_DIR}/lvgl.cmake)
 
 include(${LIBRARIES_DIR}/minimp3.cmake)
@@ -152,6 +163,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     boardlib
     ensemblecmsis_interface
     common_app_utils
+    alif_dave2d-driver
+    alif_lvgl-dave2d
     ${LVGL_TARGET}
     ${CMSIS_DSP_TARGET}
     minimp3

@@ -16,6 +16,7 @@
 #endif
 
 /* AlifSemiconductor::CMSIS Driver.USART.USART */
+#define RTE_Drivers_USART    1
 #define RTE_Drivers_USART2   1           /* Driver UART2 */
 #define RTE_Drivers_USART4   1           /* Driver UART4 */
 
@@ -30,6 +31,7 @@
 
 #define RTE_Drivers_CDC200   1 /* Display driver */
 #define RTE_Drivers_MIPI_DSI 1
+#define RTE_Drivers_MIPI_DSI_CSI2_DPHY   1   /* Driver DPHY */
 #define RTE_Drivers_MIPI_DSI_ILI9806E_PANEL 1
 #define RTE_Drivers_GT911 1
 

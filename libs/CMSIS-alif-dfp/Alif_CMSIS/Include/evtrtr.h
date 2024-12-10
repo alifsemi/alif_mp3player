@@ -114,7 +114,7 @@ static inline void evtrtr0_disable_dma_handshake(uint8_t channel, uint8_t group)
     *dma_ack_type_addr &= ~(1 << (channel & EVTRTR_DMA_CHANNEL_MAX_Msk));
     __enable_irq();
 }
-#if defined(M55_HE) || defined(M55_HP)
+
 static inline void evtrtrlocal_enable_dma_channel(uint8_t channel,
                                                   DMA_ACK_COMPLETION ack_type)
 {
@@ -142,7 +142,6 @@ static inline void evtrtrlocal_disable_dma_req(void)
 {
     EVTRTRLOCAL->DMA_REQ_CTRL = 0;
 }
-#endif
 
 #ifdef  __cplusplus
 }
