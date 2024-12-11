@@ -10,3 +10,9 @@
 [submodule "libs/CMSIS-dsp"]
 	path = libs/CMSIS-dsp
 	url = https://github.com/ARM-software/CMSIS-DSP.git
+[submodule "libs/alif_dave2d-driver"]
+	path = libs/alif_dave2d-driver
+	url = https://github.com/alifsemi/alif_dave2d-driver.git
+[submodule "libs/alif_lvgl-dave2d"]
+	path = libs/alif_lvgl-dave2d
+	url = https://github.com/alifsemi/alif_lvgl-dave2d.git

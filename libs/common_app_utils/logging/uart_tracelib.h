@@ -29,6 +29,11 @@ extern "C" {
 int tracelib_init(const char * prefix, ARM_USART_SignalEvent_t cb_event);
 
 /**
+ * @brief Uninitializes the trace lib.
+ */
+int tracelib_uninit();
+
+/**
  * @brief write trace to UART
  */
 void tracef(const char * format, ...);

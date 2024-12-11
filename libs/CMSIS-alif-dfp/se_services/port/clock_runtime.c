@@ -31,23 +31,42 @@ int32_t system_update_clock_values(void)
 {
     uint32_t        service_error_code;
     uint32_t        error_code = SERVICES_REQ_SUCCESS;
-    run_profile_t   runp = {0};
     uint32_t        frequency = 0;
 
-    /* Get the current run configuration from SE */
-    error_code = SERVICES_get_run_cfg(se_services_s_handle,
-                                      &runp,
-                                      &service_error_code);
-    if(error_code)
+    /* Get the clock configuration from SE */
+    clock_setting_t core_clock_setting;
+#if defined( M55_HP )
+    core_clock_setting = CLOCK_SETTING_EXTSYS0_FREQ;
+#elif defined( M55_HE )
+    core_clock_setting = CLOCK_SETTING_EXTSYS1_FREQ;
+#else
+    #error No CPU defined!
+#endif
+    error_code = SERVICES_clocks_setting_get(se_services_s_handle,
+                                             core_clock_setting,
+                                             &frequency,
+                                             &service_error_code);
+    if (error_code)
     {
         return -1;
     }
-    SystemCoreClock = runp.cpu_clk_freq;
+    SystemCoreClock = frequency;
 
-    error_code = SERVICES_clocks_get_apb_frequency(se_services_s_handle,
-                                                   &frequency,
-                                                   &service_error_code);
-    if(error_code)
+    error_code = SERVICES_clocks_setting_get(se_services_s_handle,
+                                             CLOCK_SETTING_HFOSC_FREQ,
+                                             &frequency,
+                                             &service_error_code);
+    if (error_code)
+    {
+        return -1;
+    }
+    SystemHFOSCClock = frequency;
+
+    error_code = SERVICES_clocks_setting_get(se_services_s_handle,
+                                             CLOCK_SETTING_APB_FREQ,
+                                             &frequency,
+                                             &service_error_code);
+    if (error_code)
     {
         return -1;
     }
@@ -55,10 +74,11 @@ int32_t system_update_clock_values(void)
     SystemAHBClock = frequency * 2;
     SystemAXIClock = frequency * 4;
 
-    error_code = SERVICES_clocks_get_refclk_frequency(se_services_s_handle,
-                                                      &frequency,
-                                                      &service_error_code);
-    if(error_code)
+    error_code = SERVICES_clocks_setting_get(se_services_s_handle,
+                                             CLOCK_SETTING_SYSREF_FREQ,
+                                             &frequency,
+                                             &service_error_code);
+    if (error_code)
     {
         return -1;
     }

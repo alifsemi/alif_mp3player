@@ -32,17 +32,16 @@ if (NOT DEFINED LVGL_SRC_PATH)
     message(FATAL_ERROR "LVGL path should be defined for LVGL library to be built")
 endif()
 
-# 4. Create static library
+# Create static library
 set(LVGL_TARGET       lvgl)
+set(LVGL_LIB   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${LVGL_TARGET}.a")
+set(LVGL_ROOT_DIR ${LVGL_SRC_PATH})
 
-# Include the subdirectory - we can use LVGL's own CMake set-up
-add_subdirectory(${LVGL_SRC_PATH} ${CMAKE_BINARY_DIR}/lvgl EXCLUDE_FROM_ALL)
+# Use custom cmake
+include(${LIBRARIES_DIR}/lvgl.custom.cmake)
 
-target_link_libraries(${LVGL_TARGET} PRIVATE ${ARM_2D_TARGET})
+target_link_libraries(${LVGL_TARGET} PRIVATE ${ARM_2D_TARGET} alif_lvgl-dave2d)
 target_include_directories(${LVGL_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/configs/lvgl)
 
 set_property(TARGET ${LVGL_TARGET} PROPERTY C_STANDARD 11)
 set_property(TARGET ${LVGL_TARGET} PROPERTY C_EXTENSIONS ON)
-
-# 6. Provide the library path for the top level CMake to use:
-set(LVGL_LIB   "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${LVGL_TARGET}.a")

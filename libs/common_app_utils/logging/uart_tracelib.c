@@ -33,11 +33,19 @@ uint16_t prefix_len;
 
 int tracelib_init(const char * prefix, ARM_USART_SignalEvent_t cb_event)
 {
+    if (initialized)
+    {
+        return 0;
+    }
     int32_t ret    = 0;
-
-#if defined(M55_HE)
+#if defined(M55_HE) || defined(M55_HE_E1C)
+#if defined(CUSTOM_HE_UART)
+    extern ARM_DRIVER_USART ARM_Driver_USART_(CUSTOM_HE_UART);
+    USARTdrv = &ARM_Driver_USART_(CUSTOM_HE_UART);
+#else
     extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART1_INSTANCE);
     USARTdrv = &ARM_Driver_USART_(BOARD_UART1_INSTANCE);
+#endif
 #elif defined(M55_HP)
     extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART2_INSTANCE);
     USARTdrv = &ARM_Driver_USART_(BOARD_UART2_INSTANCE);
@@ -63,27 +71,30 @@ int tracelib_init(const char * prefix, ARM_USART_SignalEvent_t cb_event)
     #error "Undefined CPU!"
 #endif
 
-
     tr_prefix = prefix;
-    if (tr_prefix) {
+    if (tr_prefix)
+    {
         prefix_len = strlen(tr_prefix);
-    } else {
+    }
+    else
+    {
         prefix_len = 0;
     }
 
     /* Initialize UART driver */
-    if (cb_event) {
+    if (cb_event)
+    {
         has_cb = true;
     }
     ret = USARTdrv->Initialize(cb_event);
-    if(ret != ARM_DRIVER_OK)
+    if (ret != ARM_DRIVER_OK)
     {
         return ret;
     }
 
     /* Power up UART peripheral */
     ret = USARTdrv->PowerControl(ARM_POWER_FULL);
-    if(ret != ARM_DRIVER_OK)
+    if (ret != ARM_DRIVER_OK)
     {
         return ret;
     }
@@ -94,26 +105,49 @@ int tracelib_init(const char * prefix, ARM_USART_SignalEvent_t cb_event)
                              ARM_USART_PARITY_NONE       |
                              ARM_USART_STOP_BITS_1       |
                              ARM_USART_FLOW_CONTROL_NONE, 115200);
-    if(ret != ARM_DRIVER_OK)
+    if (ret != ARM_DRIVER_OK)
     {
         return ret;
     }
 
     /* Transmitter line */
     ret =  USARTdrv->Control(ARM_USART_CONTROL_TX, 1);
-    if(ret != ARM_DRIVER_OK)
+    if (ret != ARM_DRIVER_OK)
     {
         return ret;
     }
 
     /* Receiver line */
     ret =  USARTdrv->Control(ARM_USART_CONTROL_RX, 1);
-    if(ret != ARM_DRIVER_OK)
+    if (ret != ARM_DRIVER_OK)
     {
         return ret;
     }
 
     initialized = true;
+    return ret;
+}
+
+int tracelib_uninit()
+{
+    int32_t ret = 0;
+    if (initialized)
+    {
+        /* Power down UART peripheral */
+        ret = USARTdrv->PowerControl(ARM_POWER_OFF);
+        if (ret != ARM_DRIVER_OK)
+        {
+            return ret;
+        }
+
+        ret = USARTdrv->Uninitialize();
+        if (ret != ARM_DRIVER_OK)
+        {
+            return ret;
+        }
+
+        initialized = false;
+    }
     return ret;
 }
 
@@ -123,11 +157,12 @@ int receive_str(char* str, uint32_t len)
     if (initialized)
     {
         ret = USARTdrv->Receive(str, len);
-        if(ret != ARM_DRIVER_OK)
+        if (ret != ARM_DRIVER_OK)
         {
             return ret;
         }
-        if (has_cb == false) {
+        if (has_cb == false)
+        {
             while (USARTdrv->GetRxCount() != len);
         }
     }
@@ -142,7 +177,7 @@ int send_str(const char* str, uint32_t len)
     {
         uart_event = 0;
         ret = USARTdrv->Send(str, len);
-        if(ret != ARM_DRIVER_OK)
+        if (ret != ARM_DRIVER_OK)
         {
             return ret;
         }
@@ -180,6 +215,11 @@ int tracelib_init(const char * prefix, ARM_USART_SignalEvent_t cb_event)
 {
     (void)prefix;
     (void)cb_event;
+    return 0;
+}
+
+int tracelib_uninit()
+{
     return 0;
 }
 

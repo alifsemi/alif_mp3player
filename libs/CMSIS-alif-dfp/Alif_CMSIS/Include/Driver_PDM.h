@@ -35,15 +35,27 @@ extern "c"
 
 /* Control code for PDM */
 #define ARM_PDM_MODE_MICROPHONE_SLEEP                       0x00UL
-#define ARM_PDM_MODE_STANDARD_VOICE_512_CLK_FRQ             0x01UL
-#define ARM_PDM_MODE_HIGH_QUALITY_512_CLK_FRQ               0x02UL
-#define ARM_PDM_MODE_HIGH_QUALITY_768_CLK_FRQ               0x03UL
-#define ARM_PDM_MODE_HIGH_QUALITY_1024_CLK_FRQ              0x04UL
-#define ARM_PDM_MODE_WIDE_BANDWIDTH_AUDIO_1536_CLK_FRQ      0x05UL
-#define ARM_PDM_MODE_FULL_BANDWIDTH_AUDIO_2400_CLK_FRQ      0x06UL
-#define ARM_PDM_MODE_FULL_BANDWIDTH_AUDIO_3071_CLK_FRQ      0x07UL
-#define ARM_PDM_MODE_ULTRASOUND_4800_CLOCK_FRQ              0x08UL
-#define ARM_PDM_MODE_ULTRASOUND_96_SAMPLING_RATE            0x09UL
+#define ARM_PDM_MODE_AUDIOFREQ_8K_DECM_64                   0x01UL
+#define ARM_PDM_MODE_AUDIOFREQ_16K_DECM_32                  0x02UL
+#define ARM_PDM_MODE_AUDIOFREQ_16K_DECM_48                  0x03UL
+#define ARM_PDM_MODE_AUDIOFREQ_16K_DECM_64                  0x04UL
+#define ARM_PDM_MODE_AUDIOFREQ_32K_DECM_48                  0x05UL
+#define ARM_PDM_MODE_AUDIOFREQ_48K_DECM_50                  0x06UL
+#define ARM_PDM_MODE_AUDIOFREQ_48K_DECM_64                  0x07UL
+#define ARM_PDM_MODE_AUDIOFREQ_96K_DECM_50                  0x08UL
+#define ARM_PDM_MODE_AUDIOFREQ_192K_DECM_25                 0x09UL
+
+/* Control code for PDM. Old definitions, to be deprecated in future releases */
+#define ARM_PDM_MODE_STANDARD_VOICE_512_CLK_FRQ             ARM_PDM_MODE_AUDIOFREQ_8K_DECM_64
+#define ARM_PDM_MODE_HIGH_QUALITY_512_CLK_FRQ               ARM_PDM_MODE_AUDIOFREQ_16K_DECM_32
+#define ARM_PDM_MODE_HIGH_QUALITY_768_CLK_FRQ               ARM_PDM_MODE_AUDIOFREQ_16K_DECM_48
+#define ARM_PDM_MODE_HIGH_QUALITY_1024_CLK_FRQ              ARM_PDM_MODE_AUDIOFREQ_16K_DECM_64
+#define ARM_PDM_MODE_WIDE_BANDWIDTH_AUDIO_1536_CLK_FRQ      ARM_PDM_MODE_AUDIOFREQ_32K_DECM_48
+#define ARM_PDM_MODE_FULL_BANDWIDTH_AUDIO_2400_CLK_FRQ      ARM_PDM_MODE_AUDIOFREQ_48K_DECM_50
+/* Typo in macro name, should be '3072' KHz instead of '3071' */
+#define ARM_PDM_MODE_FULL_BANDWIDTH_AUDIO_3071_CLK_FRQ      ARM_PDM_MODE_AUDIOFREQ_48K_DECM_64
+#define ARM_PDM_MODE_ULTRASOUND_4800_CLOCK_FRQ              ARM_PDM_MODE_AUDIOFREQ_96K_DECM_50
+#define ARM_PDM_MODE_ULTRASOUND_96_SAMPLING_RATE            ARM_PDM_MODE_AUDIOFREQ_192K_DECM_25
 
 #define ARM_PDM_BYPASS_IIR_FILTER                           0x0AUL
 #define ARM_PDM_BYPASS_FIR_FILTER                           0x0BUL
@@ -102,6 +114,15 @@ typedef struct _PDM_CH_CONFIG {
 }PDM_CH_CONFIG;
 
 /**
+ * @brief: PDM Status
+ */
+typedef struct _ARM_PDM_STATUS {
+    uint32_t rx_busy          : 1;  /* Receiver busy flag             */
+    uint32_t rx_overflow      : 1;  /* Receive data overflow detected */
+    uint32_t reserved         : 30; /* Reserved (must be Zero)        */
+}ARM_PDM_STATUS;
+
+/**
  @brief : PDM Driver Capabilities
  */
 typedef struct _ARM_PDM_CAPABILITIES{
@@ -122,6 +143,7 @@ typedef struct ARM_DRIVER_PDM{
     int32_t                       (*Control)           (uint32_t control, uint32_t arg1, uint32_t arg2);  /* Pointer to PDM_Control : Control Comparator Interface              */
     int32_t                       (*Config)            (PDM_CH_CONFIG *cnfg);                  /* Pointer to PDM Config: Channel configurations specific to each channel        */
     int32_t                       (*Receive)           (void *data, uint32_t num);             /* Pointer to Receive : PDM Receive Configuration                                */
+    ARM_PDM_STATUS                (*GetStatus)         (void);                                 /* Pointer to GetStatus: Get the PDM status                                      */
 }const ARM_DRIVER_PDM;
 
 #endif /* DRIVER_PDM_H_ */

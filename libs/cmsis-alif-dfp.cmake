@@ -31,6 +31,7 @@ add_library(ensemblecmsis)
 
 target_sources(ensemblecmsis PRIVATE
     ${ALIF_DEVICE_DIR}/common/source/mpu_M55.c
+    ${ALIF_DEVICE_DIR}/common/source/tcm_partition.c
     ${ALIF_DEVICE_DIR}/core/${ENSEMBLE_CORE}/source/startup_${ENSEMBLE_CORE}.c
     ${ALIF_DEVICE_DIR}/common/source/system_M55.c
     ${ALIF_DEVICE_DIR}/common/source/tgu_M55.c
@@ -51,9 +52,10 @@ target_sources(ensemblecmsis PRIVATE
     ${ALIF_ENSEMBLE_DRIVERS_DIR}/source/mhu_sender.c
     ${ALIF_DRIVER_DIR}/Source/Driver_GPIO.c
     ${ALIF_DRIVER_DIR}/Source/Driver_CDC200.c
+    ${ALIF_DRIVER_DIR}/Source/DPHY_Common.c
     ${ALIF_DRIVER_DIR}/Source/Driver_MIPI_DSI.c
     ${ALIF_DRIVER_DIR}/Source/Driver_I2S.c
-    ${ALIF_DRIVER_DIR}/Source/DPHY_init.c
+    ${ALIF_DRIVER_DIR}/Source/DPHY_DSI.c
     ${ALIF_DRIVER_DIR}/Source/Driver_I2C.c
     ${ALIF_DRIVER_DIR}/Source/Driver_UTIMER.c
     ${ALIF_COMPONENTS_DIR}/Source/GT911_touch_driver.c

@@ -28,8 +28,6 @@
 #elif defined (M55_HE)
   #include "M55_HE.h"
   #include "M55_HE_Config.h"
-#elif defined (A32)
-  #include "a32_device.h"
 #else
   #error device not specified!
 #endif
@@ -141,7 +139,6 @@ int32_t sys_busy_loop_us(uint32_t delay_us);
 __STATIC_FORCEINLINE
 bool RTSS_Is_DCache_Dirty(void)
 {
-#if defined (M55_HE) || defined (M55_HP)
     uint32_t mscr = MEMSYSCTL->MSCR;
 
     /* Return True, if Cache is active and not known to be clean */
@@ -152,9 +149,6 @@ bool RTSS_Is_DCache_Dirty(void)
     }
 
     return false;
-#elif defined (A32)
-    return true;
-#endif
 }
 
 /**
@@ -166,15 +160,10 @@ bool RTSS_Is_DCache_Dirty(void)
 __STATIC_FORCEINLINE
 bool RTSS_Is_TCM_Addr(const volatile void *local_addr)
 {
-#if defined (M55_HE) || defined (M55_HP)
     uint32_t addr = (uint32_t)local_addr;
 
     return ((addr < (ITCM_BASE + ITCM_REGION_SIZE)) || \
             ((addr > DTCM_BASE) && (addr < (DTCM_BASE + DTCM_REGION_SIZE))));
-#elif defined (A32)
-    (void)local_addr;
-    return false;
-#endif
 }
 
 /**
@@ -186,21 +175,18 @@ bool RTSS_Is_TCM_Addr(const volatile void *local_addr)
 __STATIC_INLINE
 uint32_t LocalToGlobal(const volatile void *local_addr)
 {
-    uint32_t addr = (uint32_t)local_addr;
- #if defined (M55_HE) || defined (M55_HP)
     /* Only for local TCM address, we need to map it to global address space, rest
      * for all other memories like SRAM0/1, MRAM, OctalSPI etc we can pass the address
      * as-is as those are accessed using global address
      */
+    uint32_t addr = (uint32_t)local_addr;
+
     if((addr >= DTCM_BASE) && (addr < (DTCM_BASE + DTCM_REGION_SIZE)))
         return (addr & (DTCM_ALIAS_BIT - 1)) + DTCM_GLOBAL_BASE;
     else if((addr < (ITCM_BASE + ITCM_REGION_SIZE)))
         return (addr & (ITCM_ALIAS_BIT - 1)) + ITCM_GLOBAL_BASE;
     else
         return (addr);
-#elif defined (A32)
-    return addr;
-#endif
 }
 
 /**
@@ -212,7 +198,6 @@ uint32_t LocalToGlobal(const volatile void *local_addr)
 __STATIC_INLINE
 void* GlobalToLocal(uint32_t global_addr)
 {
-#if defined (M55_HE) || defined (M55_HP)
     /* Only for local TCM address, we need to map it to local address space, rest
      * for all other memories like SRAM0/1, MRAM, OctalSPI etc we can pass the address
      * as-is as it is global.
@@ -234,9 +219,6 @@ void* GlobalToLocal(uint32_t global_addr)
     else
         return ((void*)addr);
 #endif /* CONFIG_MAP_GLOBAL_TO_LOCAL_TCM_ALIAS */
-#elif defined (A32)
-    return (void*)global_addr;
-#endif
 }
 
 /**
@@ -306,14 +288,10 @@ void RTSS_InvalidateDCache_by_Addr (volatile void *addr, int32_t dsize)
          * Perform the check for threshold size and decide.
          *
          */
- #if defined (M55_HE) || defined (M55_HP)
         if (dsize < RTSS_FORCE_GLOBAL_CLEAN_INVALIDATE_THRESHOLD_SIZE)
             SCB_InvalidateDCache_by_Addr (addr, dsize);
         else
             SCB_CleanInvalidateDCache ();
-#else
-        SCB_InvalidateDCache_by_Addr (addr, dsize);
-#endif
     }
     else
     {
@@ -341,14 +319,10 @@ void RTSS_CleanDCache_by_Addr (volatile void *addr, int32_t dsize)
          * Perform the check for threshold size and decide.
          *
          */
-#if defined (M55_HE) || defined (M55_HP)
         if (dsize < RTSS_FORCE_GLOBAL_CLEAN_INVALIDATE_THRESHOLD_SIZE)
             SCB_CleanDCache_by_Addr (addr, dsize);
         else
             SCB_CleanDCache ();
-#else
-        SCB_CleanDCache_by_Addr (addr, dsize);
-#endif
     }
     else
     {
@@ -361,21 +335,12 @@ void RTSS_CleanDCache_by_Addr (volatile void *addr, int32_t dsize)
   \fn          void RTSS_CleanDCache (void)
   \brief       Clean the Cache only if the line is dirty.
 */
-#if defined (M55_HE) || defined (M55_HP)
-/**
-  \fn          void RTSS_CleanDCache (void)
-  \brief       Clean the Cache only if the line is dirty.
-*/
 __STATIC_FORCEINLINE
 void RTSS_CleanDCache (void)
 {
     if(RTSS_IsGlobalCacheClean_Required() && RTSS_Is_DCache_Dirty())
         SCB_CleanDCache();
 }
-#else
-// Global D-cache clean is not safely possible in SMP system - do not fake.
-// Callers must do ranged cleans.
-#endif
 
 /**
   \fn          void RTSS_CleanInvalidateDCache_by_Addr (volatile void *addr, int32_t dsize)
@@ -387,7 +352,6 @@ void RTSS_CleanDCache (void)
 __STATIC_FORCEINLINE
 void RTSS_CleanInvalidateDCache_by_Addr (volatile void *addr, int32_t dsize)
 {
-#if defined (M55_HE) || defined (M55_HP)
     bool clean_req = true;
     bool invalidate_req =  true;
 
@@ -427,9 +391,6 @@ void RTSS_CleanInvalidateDCache_by_Addr (volatile void *addr, int32_t dsize)
         __DSB();
         __ISB();
     }
-#elif defined (A32)
-    SCB_CleanInvalidateDCache_by_Addr(addr, dsize);
-#endif
 }
 
 

@@ -413,7 +413,9 @@ static inline void spi_mask_interrupts(SPI_Type *spi)
 */
 static inline void spi_enable_rx_dma(SPI_Type *spi)
 {
+    spi_disable(spi);
     spi->SPI_DMACR |= SPI_DMACR_RX_DMA_ENABLE;
+    spi_enable(spi);
 }
 
 /**
@@ -424,7 +426,9 @@ static inline void spi_enable_rx_dma(SPI_Type *spi)
 */
 static inline void spi_disable_rx_dma(SPI_Type *spi)
 {
+    spi_disable(spi);
     spi->SPI_DMACR &= ~SPI_DMACR_RX_DMA_ENABLE;
+    spi_enable(spi);
 }
 
 /**
@@ -435,7 +439,9 @@ static inline void spi_disable_rx_dma(SPI_Type *spi)
 */
 static inline void spi_enable_tx_dma(SPI_Type *spi)
 {
+    spi_disable(spi);
     spi->SPI_DMACR |= SPI_DMACR_TX_DMA_ENABLE;
+    spi_enable(spi);
 }
 
 /**
@@ -446,7 +452,9 @@ static inline void spi_enable_tx_dma(SPI_Type *spi)
 */
 static inline void spi_disable_tx_dma(SPI_Type *spi)
 {
+    spi_disable(spi);
     spi->SPI_DMACR &= ~SPI_DMACR_TX_DMA_ENABLE;
+    spi_enable(spi);
 }
 
 /**
@@ -730,6 +738,33 @@ void spi_receive_blocking(SPI_Type *spi, spi_transfer_t *transfer);
 void spi_transfer_blocking(SPI_Type *spi, spi_transfer_t *transfer);
 
 /**
+  \fn          void lpspi_send_blocking(SPI_Type *lpspi, spi_transfer_t *transfer)
+  \brief       Execute a blocking SPI receive described by the transfer structure.
+  \param[in]   lpspi     Pointer to the LPSPI register map
+  \param[in]   transfer  Pointer to transfer structure
+  \return      none
+*/
+void lpspi_send_blocking(SPI_Type *lpspi, spi_transfer_t *transfer);
+
+/**
+  \fn          void lpspi_receive_blocking(SPI_Type *lpspi, spi_transfer_t *transfer)
+  \brief       Execute a blocking SPI send described by the transfer structure.
+  \param[in]   lpspi     Pointer to the LPSPI register map
+  \param[in]   transfer  Pointer to transfer structure
+  \return      none
+*/
+void lpspi_receive_blocking(SPI_Type *lpspi, spi_transfer_t *transfer);
+
+/**
+  \fn          void lpspi_transfer_blocking(SPI_Type *lpspi, spi_transfer_t *transfer)
+  \brief       Execute a blocking SPI transfer described by the transfer structure.
+  \param[in]   lpspi     Pointer to the LPSPI register map
+  \param[in]   transfer  Pointer to transfer structure
+  \return      none
+*/
+void lpspi_transfer_blocking(SPI_Type *lpspi, spi_transfer_t *transfer);
+
+/**
   \fn          void lpspi_set_mode(SPI_Type *spi, SPI_MODE mode)
   \brief       Set the mode for the LPSPI instance.
   \param[in]   lpspi   Pointer to the LPSPI register map
@@ -824,6 +859,15 @@ void spi_mw_transmit(SPI_Type *spi, bool is_slave);
   \return      none
 */
 void spi_mw_receive(SPI_Type *spi, spi_transfer_t *transfer);
+
+/**
+  \fn          uint32_t spi_dma_calc_rx_level(uint32_t total_cnt, uint8_t fifo_threshold)
+  \brief       Calculate SPI DMA receive data level
+  \param[in]   fifo_threshold  receive fifo threshold value
+  \param[in]   total_cnt  total number of data count
+  \return      final value after calculation
+*/
+uint32_t spi_dma_calc_rx_level(uint32_t total_cnt, uint8_t fifo_threshold);
 
 /**
   \fn          void spi_dma_send(SPI_Type *spi)
